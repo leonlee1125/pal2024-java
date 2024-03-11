@@ -7,3 +7,6 @@ class Test{  // 注意類別名稱需要跟.java檔名相同
         System.out.println("Hello Java~~");
     }
 }
+
+
+
