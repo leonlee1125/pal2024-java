@@ -30,13 +30,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 	
 	
 	
-	public ListNode commandhead ;
+	static public ListNode commandhead ;
 	
-	public Queue<String> input = new LinkedList<>();
+	static public Queue<String> input = new LinkedList<>();
 	
+	private static Scanner scanner = new Scanner(System.in); // 创建全局Scanner实例
 	
-	
-  public boolean Checkisint( String token ) {  // 檢查int
+	static public boolean Checkisint( String token ) {  // 檢查int
   	boolean allnum = true ;
     int intnum = 0 ;
 
@@ -51,7 +51,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
   
   
-  boolean Checkisfloat( String token ) {  // 檢查float
+  static boolean Checkisfloat( String token ) {  // 檢查float
   	boolean hasdot = false ;
   	boolean allnum = true ;
     int countnum = 0 ;
@@ -68,11 +68,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Checkisfloat()
   
   
-  public void addtovector( String item ) {
+	static public boolean Checkisallenglish( String token ) {  // 檢查英文
+      // 正则表达式匹配字符串仅包含英文大小写字母
+      return token.matches("[a-zA-Z]+");
+  } // Checkisint()
+  
+	
+  static public void addtovector( String item ) {
   	int type = 0 ;
   	if ( Checkisint( item ) ) type = 1 ;
   	else if ( Checkisfloat( item ) ) type = 2  ;      	
-  	else type = 3  ; 	
+  	else if ( Checkisallenglish( item ) )type = 3  ; 	
+  	else type = 4 ;
   	
     ListNode newNode = new ListNode( type, item );
     if (commandhead == null) {
@@ -87,16 +94,26 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  public void readcommendandstore() {
-    Scanner scanner = new Scanner(System.in);
+  static public void readcommendandstore() {
     boolean hasend = false ;
-  	
-  	String word = scanner.next();
+
+    String word = "" ;
+    
+    if (scanner.hasNext()) {
+      word = scanner.next();
+    }
+    
   	String save = "" ;
+
   	while( !hasend ) { // 主要
+  		System.out.println(word);
+
       for (int i = 0; i < word.length(); i++) {
       	char temp = word.charAt(i); // 获取位置i的字符
-        if ( temp == ';' ) hasend = true ;
+        if ( temp == ';' ) {
+        	hasend = true ;
+        	addtovector( ";" ) ;
+        }
         else if ( temp == ':' ) { // 宣告
         	if( save != "" ) addtovector( save ) ;
         	addtovector( ":" ) ;
@@ -121,62 +138,156 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         	if( save != "" ) addtovector( save ) ;
         	addtovector( "/" ) ;
         }
+        else if ( temp == ')' ) {
+        	if( save != "" ) addtovector( save ) ;
+        	addtovector( ")" ) ;
+        }
+        else if ( temp == '(' ) {
+        	if( save != "" ) addtovector( save ) ;
+        	addtovector( "(" ) ;
+        }
         else {
         	save = save + word.charAt(i) ;
         }
       }
       
-      if( save != "" ) addtovector( save ) ;
+      if( save != "" ) {
+      	addtovector( save ) ;
+      	save = "" ;
+      }
       	
-  		if( !hasend ) word = scanner.next();
+  		if( !hasend && scanner.hasNext()) word = scanner.next();
   	}
-    scanner.close();
   }
   
   
-  public boolean syntaxcheck() {
-  
-  
-    return false ;
-  }
-  
-  public boolean checkidexist() {
-  	
-  	
-    return false ;
-
-  }
-  
-  
-  public void scanner () {
-  	
-  	readcommendandstore() ;
-  	syntaxcheck() ;
-  	checkidexist() ;
-  	
-  	
-  	
-  	
-  }
-  
-  
-  public void process() {
-  	
-  	
-  	
-  }
-  
-  
-	public static void main(String[] args) {
+  static public void test() {
     Scanner scanner = new Scanner(System.in);
-		int testnum = scanner.nextInt();
-		
-		ArrayList<ArrayList<String>> gdefinename = new ArrayList<>(); // 创建一个ArrayList
-		
-		
-		
-    scanner.close();
+    boolean hasend = false ;
 
-		System.out.println("Hello Java~~");
+    String word = "" ;
+    
+    if (scanner.hasNext()) {
+      word = scanner.next();
+    }
+
+  	System.out.println(word);
+
+	
+    scanner.close();
+  }
+  
+  static public boolean checkcommand( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean statement( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean booleanexp( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean arithexp( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean term( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean factor( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean syntaxcheck( ListNode head ) {
+  	if ( head == null) return false;
+  	if ( checkcommand( head )) return true ;
+  	else return false ;
+  }
+  
+  
+  static public boolean checkidexist() {
+  	
+  	
+    return false ;
+  }
+  
+  
+  static public void scanner () {
+		System.out.println("0");
+
+  	readcommendandstore() ;
+  	// output() ;
+		System.out.println("1");
+
+  	//syntaxcheck() ;
+		System.out.println("2");
+
+  	//checkidexist() ;
+  	
+  }
+  
+  
+  static public void output() {
+  	while ( commandhead != null ) {
+  	  System.out.println(commandhead.item);
+  	  commandhead = commandhead.next ; 
+    }
+  	
+  	commandhead = null;
+  }
+  
+  
+  
+  static public boolean process() {
+  	if( commandhead != null ) {
+  		output();
+  		return true ;
+  	}
+  	else return false ;
+  }
+  
+  
+  
+  
+  
+  public static void main(String[] args) {
+		System.out.println("please input");
+	
+		int testnum = scanner.nextInt();
+    	
+		ArrayList<ArrayList<String>> gdefinename = new ArrayList<>(); // 创建一个ArrayList
+
+		scanner() ;
+		while( process() ) scanner() ;
+		
+    scanner.close();	
+		System.out.println("finish");
 	}
 }
