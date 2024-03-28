@@ -4,7 +4,8 @@ package PL112_10920131;
 1 int
 2 float   
 3 string   
-4 mark
+4 +-
+5
 */
 
 
@@ -78,8 +79,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   	int type = 0 ;
   	if ( Checkisint( item ) ) type = 1 ;
   	else if ( Checkisfloat( item ) ) type = 2  ;      	
-  	else if ( Checkisallenglish( item ) )type = 3  ; 	
-  	else type = 4 ;
+  	else if ( Checkisallenglish( item ) ) type = 3  ; 	
+  	else if ( item == "+" || item == "-" ) type = 4 ;
+  	else type = 5 ; 
   	
     ListNode newNode = new ListNode( type, item );
     if (commandhead == null) {
@@ -177,7 +179,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     scanner.close();
   }
   
-  static public boolean checkcommand( ListNode checkitem ) {
+  static public boolean command( ListNode checkitem ) {
   	
   	
   	
@@ -185,7 +187,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean statement( ListNode checkitem ) {
+  static public boolean IDlessArithExpOrBexp( ListNode checkitem ) {
   	
   	
   	
@@ -193,7 +195,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean booleanexp( ListNode checkitem ) {
+  static public boolean BooleanOprator( ListNode checkitem ) {
   	
   	
   	
@@ -201,7 +203,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean arithexp( ListNode checkitem ) {
+  static public boolean NOT_ID_StartArithExpOrBexp( ListNode checkitem ) {
   	
   	
   	
@@ -209,7 +211,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean term( ListNode checkitem ) {
+  static public boolean NOT_ID_StartArithExp( ListNode checkitem ) {
   	
   	
   	
@@ -217,8 +219,40 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean factor( ListNode checkitem ) {
+  static public boolean NOT_ID_StartTerm( ListNode checkitem ) {
   	
+  	
+  	
+  	return false ;
+  }
+  
+  static public boolean NOT_ID_StartFactor( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean ArithExp( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean Term( ListNode checkitem ) {
+  	
+  	
+  	
+  	return false ;
+  }
+  
+  
+  static public boolean Factor( ListNode checkitem ) {
+  	if ( checkitem.type == 3 ) return true ;
+  	else if ( checkitem.type == 3  )
   	
   	
   	return false ;
