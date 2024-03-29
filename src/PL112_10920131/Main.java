@@ -5,7 +5,12 @@ package PL112_10920131;
 2 float   
 3 string   
 4 +-
-5
+5 operater
+6 (
+7 )
+8 / *
+9 := df
+10 other
 */
 
 
@@ -81,7 +86,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   	else if ( Checkisfloat( item ) ) type = 2  ;      	
   	else if ( Checkisallenglish( item ) ) type = 3  ; 	
   	else if ( item == "+" || item == "-" ) type = 4 ;
-  	else type = 5 ; 
+  	else if ( item == "=" || item == "<>" || item == ">" || item == "<" || item == ">=" || item == "<=" ) type = 5 ;
+  	else if ( item == "(" ) type = 6 ;  	
+  	else if ( item == ")" ) type = 7 ;  	
+  	else if ( item == "*" || item == "/" ) type = 8 ;  	
+  	else if ( item == ":=" ) type = 9 ;  	
+  	else type = 10 ; 
   	
     ListNode newNode = new ListNode( type, item );
     if (commandhead == null) {
@@ -117,8 +127,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         	addtovector( ";" ) ;
         }
         else if ( temp == ':' ) { // 宣告
-        	if( save != "" ) addtovector( save ) ;
-        	addtovector( ":" ) ;
+        	if( i+1 < word.length() && word.charAt(i+1) == '=' ) addtovector( ":=" ) ;
+        	else {
+        	  if( save != "" ) addtovector( save ) ;
+        	  addtovector( ":" ) ;
+        	}
         }
         else if ( temp == '=' ) {
         	if( save != "" ) addtovector( save ) ;
@@ -147,6 +160,25 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         else if ( temp == '(' ) {
         	if( save != "" ) addtovector( save ) ;
         	addtovector( "(" ) ;
+        }
+        else if ( temp == '(' ) {
+        	if( save != "" ) addtovector( save ) ;
+        	addtovector( "(" ) ;
+        }
+        else if ( temp == '>' ) { // op
+        	if( i+1 < word.length() && ( word.charAt(i+1) == '=' ) ) addtovector( ">=" ) ;
+        	else {
+        	  if( save != "" ) addtovector( save ) ;
+        	  addtovector( ">" ) ;
+        	}
+        }
+        else if ( temp == '<' ) { // op
+        	if( i+1 < word.length() &&  word.charAt(i+1) == '=' ) addtovector( ">=" ) ;
+        	else if ( i+1 < word.length() &&  word.charAt(i+1) == '>' ) addtovector( "<>" ) ;
+        	else {
+        	  if( save != "" ) addtovector( save ) ;
+        	  addtovector( "<" ) ;
+        	}
         }
         else {
         	save = save + word.charAt(i) ;
@@ -179,89 +211,197 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     scanner.close();
   }
   
+  
+  
+  
+  
   static public boolean command( ListNode checkitem ) {
-  	
-  	
-  	
+  	ListNode copy = checkitem ;
+  	if( checkitem.item == "quit" ) return true ;
+  	if( NOT_ID_StartArithExpOrBexp( checkitem ) ) {
+  		while( copy.next != null) copy = copy.next ;
+  		if( copy.item == ";" ) return true ;
+  	}
+  	if( checkitem.type == 3 ) {
+  		copy = checkitem.next;
+  		if( copy.type == 9 ) {
+  			copy = copy.next ;
+    		if ( ArithExp( copy )) {
+      		while( copy.next != null) copy = copy.next ;
+      		if( copy.item == ";" ) return true ;
+    		}
+  		}
+  		copy = checkitem.next;
+  		if ( IDlessArithExpOrBexp( copy )) {
+    		while( copy.next != null) copy = copy.next ;
+    		if( copy.item == ";" ) return true ;
+  		}
+  	}
+
   	return false ;
   }
   
   
   static public boolean IDlessArithExpOrBexp( ListNode checkitem ) {
+  	while( checkitem.type == 8 || checkitem.type == 4 ) {
+  		checkitem = checkitem.next;
+  		if ( checkitem.type == 4 && !Term( checkitem ) ) return false ;
+  		if ( checkitem.type == 8 && !Factor( checkitem ) ) return false ; 
+  	}
   	
+  	checkitem = checkitem.next;
+  	if( checkitem == null ) return true ;
+    if( !BooleanOpratorwithArithExp( checkitem ) ) return false ;
   	
-  	
-  	return false ;
+    return true ;
   }
   
   
   static public boolean BooleanOprator( ListNode checkitem ) {
-  	
-  	
-  	
-  	return false ;
+  	if( checkitem.type == 5 ) return true;
+  	else return false ;
   }
   
   
+  static public boolean BooleanOpratorwithArithExp( ListNode checkitem ) {
+  	if( !BooleanOprator( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
+  	
+  	if( !ArithExp( checkitem ) ) return false ;
+  	else return true ;
+  }
+  
+
   static public boolean NOT_ID_StartArithExpOrBexp( ListNode checkitem ) {
-  	
-  	
-  	
-  	return false ;
+  	if( !NOT_ID_StartArithExp( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
+
+  	if( checkitem == null ) return true ;
+    if( !BooleanOpratorwithArithExp( checkitem ) ) return false ;
+
+    return true;
   }
   
   
   static public boolean NOT_ID_StartArithExp( ListNode checkitem ) {
+  	if( !NOT_ID_StartTerm( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
   	
-  	
-  	
-  	return false ;
+  	if ( checkitem.type == 4 ) {
+  		while( checkitem.type == 4 ) {
+  			checkitem = checkitem.next;
+  			if( !Term( checkitem ) ) return false ;
+  			else checkitem = checkitem.next;
+  		}
+  		
+  		return true;
+  	}
+  	else return true ;
   }
   
   
   static public boolean NOT_ID_StartTerm( ListNode checkitem ) {
+  	if( !NOT_ID_StartFactor( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
   	
-  	
-  	
-  	return false ;
+  	if ( checkitem.type == 8 ) {
+  		while( checkitem.type == 8 ) {
+  			checkitem = checkitem.next;
+  			if( !Factor( checkitem ) ) return false ;
+  			else checkitem = checkitem.next;
+  		}
+  		
+  		return true;
+  	}
+  	else return true ;
   }
   
+  
   static public boolean NOT_ID_StartFactor( ListNode checkitem ) {
-  	
-  	
-  	
-  	return false ;
+    if ( checkitem.type == 4 ) {
+  		if ( checkitem.next.type == 1 || checkitem.next.type == 2 ) return true; 
+  		else return false;
+  	}
+  	else if ( checkitem.next.type == 1 || checkitem.next.type == 2 ) return true; 
+  	else if ( checkitem.next.type == 5 ) {
+  		if( ArithExpwithend( checkitem.next ) ) return true;
+  		else return false ;
+  	}
+  	else return false ;
   }
   
   
   static public boolean ArithExp( ListNode checkitem ) {
+  	if( !Term( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
   	
+  	if ( checkitem.type == 4 ) {
+  		while( checkitem.type == 4 ) {
+  			checkitem = checkitem.next;
+  			if( !Term( checkitem ) ) return false ;
+  			else checkitem = checkitem.next;
+  		}
+  		
+  		return true;
+  	}
+  	else return true ;
+  }
+  
+  
+  static public boolean ArithExpwithend( ListNode checkitem ) {
+  	if( !Term( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
   	
-  	
-  	return false ;
+  	if ( checkitem.type == 4 ) {
+  		while( checkitem.type == 4 ) {
+  			checkitem = checkitem.next;
+  			if( !Term( checkitem ) ) return false ;
+  			else checkitem = checkitem.next;
+  		}
+  		
+  		if( checkitem.type == 7 ) return true;
+  		else return false ;
+  	}
+  	else if( checkitem.type == 7 ) return true;
+  	else return false ;
   }
   
   
   static public boolean Term( ListNode checkitem ) {
+  	if( !Factor( checkitem ) ) return false ;
+  	checkitem = checkitem.next;
   	
-  	
-  	
-  	return false ;
+  	if ( checkitem.type == 8 ) {
+  		while( checkitem.type == 8 ) {
+  			checkitem = checkitem.next;
+  			if( !Factor( checkitem ) ) return false ;
+  			else checkitem = checkitem.next;
+  		}
+  		
+  		return true;
+  	}
+  	else return true ;
   }
   
   
   static public boolean Factor( ListNode checkitem ) {
   	if ( checkitem.type == 3 ) return true ;
-  	else if ( checkitem.type == 3  )
-  	
-  	
-  	return false ;
+  	else if ( checkitem.type == 4 ) {
+  		if ( checkitem.next.type == 1 || checkitem.next.type == 2 ) return true; 
+  		else return false;
+  	}
+  	else if ( checkitem.next.type == 1 || checkitem.next.type == 2 ) return true; 
+  	else if ( checkitem.next.type == 5 ) {
+  		if( ArithExpwithend( checkitem.next ) ) return true;
+  		else return false ;
+  	}
+  	else return false ;
   }
   
   
   static public boolean syntaxcheck( ListNode head ) {
   	if ( head == null) return false;
-  	if ( checkcommand( head )) return true ;
+  	if ( command( head )) return true ;
   	else return false ;
   }
   
