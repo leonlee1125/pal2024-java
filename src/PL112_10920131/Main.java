@@ -207,11 +207,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
   	System.out.println(word);
 
-	
     scanner.close();
   }
-  
-  
   
   
   
@@ -437,14 +434,62 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   	commandhead = null;
   }
   
+  static public float getnumber( String item ) {
+  	
+  	
+  	return 123 ;
+  }
   
-  
-  static public boolean process() {
-  	if( commandhead != null ) {
-  		output();
-  		return true ;
-  	}
-  	else return false ;
+  static public float process( ListNode start, ListNode end ) {
+    float result = 0;
+    float lastNumber = 0;
+    String lastOp = "+";
+
+    for (ListNode current = start; current != end; current = current.next) {
+      if ( current.type == 1 || current.type == 2 ) { // Number
+          lastNumber = Float.parseFloat(current.item);
+      } else if (current.type == 2) { // Variable
+          lastNumber = getnumber(current.item );
+      }
+
+      if (lastOp.equals("+")) {
+          result += lastNumber;
+      } else if (lastOp.equals("-")) {
+          result -= lastNumber;
+      } else if (lastOp.equals("*")) {
+          result *= lastNumber;
+      } else if (lastOp.equals("/")) {
+          result /= lastNumber;
+      }
+
+      if (current.type == 1) { // Operator or parentheses
+          if (current.item.equals("(")) {
+            // Find corresponding closing parenthesis
+            int balance = 1;
+            ListNode temp = current.next;
+            while (temp != null && balance != 0) {
+              if (temp.item.equals("(")) balance++;
+              else if (temp.item.equals(")")) balance--;
+              temp = temp.next;
+            }
+            lastNumber = calculateExpression(current.next, temp); // temp is null or the closing parenthesis
+            current = temp; // Skip to the closing parenthesis
+
+            // Apply the last operation
+            if (lastOp.equals("+")) {
+              result += lastNumber;
+            } else if (lastOp.equals("-")) {
+              result -= lastNumber;
+            } else if (lastOp.equals("*")) {
+              result *= lastNumber;
+            } else if (lastOp.equals("/")) {
+              result /= lastNumber;
+            }
+         } else {
+           lastOp = current.item;
+       }
+    }
+    return result;
   }
   
   
@@ -459,7 +504,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 		ArrayList<ArrayList<String>> gdefinename = new ArrayList<>(); // 创建一个ArrayList
 
 		scanner() ;
-		while( process() ) scanner() ;
+		ListNode end = commandhead ;
+		while ( end.next != null ) end = end.next ;
+		while( process( commandhead, end ) != -999 ) {
+			scanner() ;
+			end = commandhead ;
+			while ( end.next != null ) end = end.next ;
+		}
 		
     scanner.close();	
 		System.out.println("finish");
