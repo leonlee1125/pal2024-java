@@ -34,7 +34,29 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 	}
 
 	
+	static class iddata {
+    String str;
+    Float num;
+
+    // 構造函數
+    public iddata(String str, Float num) {
+        this.str = str;
+        this.num = num;
+    }
+  
+    // 獲取 String
+    public String getStr() {
+        return str;
+    }
+
+    // 獲取 Float
+    public Float getNum() {
+        return num;
+    }
+  }
 	
+	
+  static public ArrayList<iddata> gdefinename = new ArrayList<>();
 	
 	static public ListNode commandhead ;
 	
@@ -118,7 +140,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   	String save = "" ;
 
   	while( !hasend ) { // 主要
-  		System.out.println(word);
+  		//System.out.println(word);
 
       for (int i = 0; i < word.length(); i++) {
       	char temp = word.charAt(i); // 获取位置i的字符
@@ -403,24 +425,38 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   
-  static public boolean checkidexist() {
+  static public boolean isStringInList(String searchStr) {
+    for (iddata pair : gdefinename) {
+        if (pair.getStr().equals(searchStr)) {
+            return true; // 找到匹配的字符串，返回 true
+        }
+    }
+    return false; // 沒有找到匹配的項目，返回 false
+  }
+  
+  
+  static public boolean checkidexist( ListNode head ) {
+  	head = head.next ;
+  	while( head != null ) {
+  		if ( !isStringInList (head.item) ) return false ;
+  		head = head.next ;
+  	}
   	
-  	
-    return false ;
+    return true ;
   }
   
   
   static public void scanner () {
-		System.out.println("0");
+		System.out.println("pp0");
 
   	readcommendandstore() ;
-  	// output() ;
-		System.out.println("1");
+    //output() ;
+		System.out.println("pp1");
+    //test() ;
+  	syntaxcheck( commandhead ) ;
+		System.out.println("pp2");
 
-  	//syntaxcheck() ;
-		System.out.println("2");
-
-  	//checkidexist() ;
+  	checkidexist(commandhead) ;
   	
   }
   
@@ -435,83 +471,102 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   }
   
   static public float getnumber( String item ) {
-  	
-  	
-  	return 123 ;
+    for (iddata pair : gdefinename) {
+      if (pair.getStr().equals(item)) {
+          return pair.getNum();
+      }
+    }
+    // 沒有找到匹配的字符串，返回 null 或拋出異常
+    return -999; // 或者可以選擇拋出一個異常
   }
   
-  static public float process( ListNode start, ListNode end ) {
-    float result = 0;
-    float lastNumber = 0;
+  
+  static public void addData(String str, Float num) {
+    // 創建一個 StringFloatPair 對象
+  	iddata pair = new iddata(str, num);
+    // 將對象添加到列表中
+    gdefinename.add(pair);
+  }
+  
+  
+  private static float process(ListNode start, ListNode end) { //
+  	float result = 0;
+  	float lastNumber = 0;
     String lastOp = "+";
-
+    if( start.item == "quit" ) return -999 ;  
+    
     for (ListNode current = start; current != end; current = current.next) {
+    	System.out.println(current.item);
       if ( current.type == 1 || current.type == 2 ) { // Number
           lastNumber = Float.parseFloat(current.item);
-      } else if (current.type == 2) { // Variable
-          lastNumber = getnumber(current.item );
+      } 
+      else if (current.type == 3) { // Variable
+        lastNumber = getnumber(current.item);
       }
-
+      
       if (lastOp.equals("+")) {
-          result += lastNumber;
-      } else if (lastOp.equals("-")) {
-          result -= lastNumber;
-      } else if (lastOp.equals("*")) {
-          result *= lastNumber;
-      } else if (lastOp.equals("/")) {
-          result /= lastNumber;
+        result += lastNumber;
+      } 
+      else if (lastOp.equals("-")) {
+        result -= lastNumber;
+      } 
+      else if (lastOp.equals("*")) {
+        result *= lastNumber;
+      } 
+      else if (lastOp.equals("/")) {
+        result /= lastNumber;
       }
+      
+      if (current.type == 6 || current.type == 7 || current.type == 4 || current.type == 8 ) { // Operator or parentheses
+        if (current.item.equals("(")) {
+          // Find corresponding closing parenthesis
+          int balance = 1;
+          ListNode temp = current.next;
+          while (temp != null && balance != 0) {
+            if (temp.item.equals("(")) balance++;
+            else if (temp.item.equals(")")) balance--;
+            temp = temp.next;
+          }
+          lastNumber = process(current.next, temp); // temp is null or the closing parenthesis
+          current = temp; // Skip to the closing parenthesis
 
-      if (current.type == 1) { // Operator or parentheses
-          if (current.item.equals("(")) {
-            // Find corresponding closing parenthesis
-            int balance = 1;
-            ListNode temp = current.next;
-            while (temp != null && balance != 0) {
-              if (temp.item.equals("(")) balance++;
-              else if (temp.item.equals(")")) balance--;
-              temp = temp.next;
-            }
-            lastNumber = calculateExpression(current.next, temp); // temp is null or the closing parenthesis
-            current = temp; // Skip to the closing parenthesis
-
-            // Apply the last operation
-            if (lastOp.equals("+")) {
-              result += lastNumber;
-            } else if (lastOp.equals("-")) {
-              result -= lastNumber;
-            } else if (lastOp.equals("*")) {
-              result *= lastNumber;
-            } else if (lastOp.equals("/")) {
-              result /= lastNumber;
-            }
-         } else {
-           lastOp = current.item;
-       }
-    }
+          // Apply the last operation
+          if (lastOp.equals("+")) {
+            result += lastNumber;
+          } else if (lastOp.equals("-")) {
+            result -= lastNumber;
+          } else if (lastOp.equals("*")) {
+            result *= lastNumber;
+          } else if (lastOp.equals("/")) {
+          	result /= lastNumber;
+          }
+        } else {
+          lastOp = current.item;
+        }
+      } // else if
+      
+      lastNumber = 0 ;
+    } // for
+		System.out.println(result);
     return result;
   }
-  
-  
-  
   
   
   public static void main(String[] args) {
 		System.out.println("please input");
 	
 		int testnum = scanner.nextInt();
-    	
-		ArrayList<ArrayList<String>> gdefinename = new ArrayList<>(); // 创建一个ArrayList
 
 		scanner() ;
 		ListNode end = commandhead ;
 		while ( end.next != null ) end = end.next ;
 		while( process( commandhead, end ) != -999 ) {
+			commandhead = null ;
 			scanner() ;
 			end = commandhead ;
 			while ( end.next != null ) end = end.next ;
 		}
-		
+
     scanner.close();	
 		System.out.println("finish");
 	}
