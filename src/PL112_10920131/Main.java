@@ -172,8 +172,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         	addtovector( "*" ) ;
         }
         else if ( temp == '/' ) {
-        	if( save != "" ) addtovector( save ) ;
-        	addtovector( "/" ) ;
+        	if( i+1 < word.length() && ( word.charAt(i+1) == '/' ) ) {
+        		if( save != "" ) addtovector( save ) ;
+        		scanner.nextLine();
+        	}
+        	else {
+          	if( save != "" ) addtovector( save ) ;
+          	addtovector( "/" ) ;
+        	}
         }
         else if ( temp == ')' ) {
         	if( save != "" ) addtovector( save ) ;
@@ -493,7 +499,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   	float result = 0;
   	float lastNumber = 0;
     String lastOp = "+";
-    if( start.item == "quit" ) return -999 ;  
+    if ("quit".equals(start.item)) {
+    	return Float.NaN; // 遇到"quit"时，返回特殊值
+    }
     
     for (ListNode current = start; current != end; current = current.next) {
     	System.out.println(current.item);
@@ -540,7 +548,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } else if (lastOp.equals("/")) {
           	result /= lastNumber;
           }
-        } else {
+        } 
+        else {
           lastOp = current.item;
         }
       } // else if
@@ -560,7 +569,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 		scanner() ;
 		ListNode end = commandhead ;
 		while ( end.next != null ) end = end.next ;
-		while( process( commandhead, end ) != -999 ) {
+		while( process( commandhead, end ) != Float.NaN ) {
 			commandhead = null ;
 			scanner() ;
 			end = commandhead ;
