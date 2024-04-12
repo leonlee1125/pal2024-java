@@ -1,4 +1,4 @@
-package PL112_10920131;
+
 
 /*
 1 int
@@ -18,12 +18,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Stack;
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Arrays;
-
-
-
 
 class ListNode {  // 基本架構 ;
   int mtype;
@@ -581,117 +579,188 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sgdefinename.add( pair );
   } // AddData()
   
-  
-  private static boolean Process( ListNode start, ListNode end ) { //
 
-    float prenum = 0 ;
-    boolean bigsmall = false ;
-
-    if ( start.mitem.equals( "quit" ) ) {
-      return true ; // 遇到"quit"时，返回特殊值
-    } // if
+  private static float Process( ListNode start ) { // 
+    String exp = "";
     
-    Stack<String> cal = new Stack<String>();
+    for( ListNode current = start; current != null ; current = current.mnext  ) exp = exp + current.mitem ;
     
-    for ( ListNode current = start; current != end ; current = current.mnext ) { // 處理括號
-      if ( current.mtype == 7 ){
-          Stack<String> sb = new Stack();
-          while (!cal.isEmpty() && !cal.peek().equals("(")){
-              sb.push(cal.pop());
-          }
-          cal.pop();
-          cal.push(calculate(sb));
-      }
-      else cal.push(current.mitem); 
-    }
-      
-    if (cal.size() == 1){// 计算完括号里面的，如果栈中只剩下一个元素
-      System.out.print( "> " );
-      System.out.println(cal.pop());
-    }
-    else {// 计算完括号里面的，栈中还有多个元素，继续计算
-    // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
-      Stack<String> last = new Stack<String>();
-      while (!cal.isEmpty()){
-        last.push(cal.pop());
-      }
-      System.out.print( "> " );
-      System.out.println(calculate(last));
-    }
-    return true ;
-  } // Process()
-
-    /*
-    
-    if ( bigsmall ) {
-      if ( op == ">" ) {
-        // System.out.println( prenum );
-        // System.out.println( result );
-        if ( prenum > result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // if
-      else if ( op == "<=" ) {
-        if ( prenum <= result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == "<" ) {
-        if ( prenum < result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == ">=" ) {
-        if ( prenum >= result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == "=" ) {
-        if ( prenum == result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      // else if ( op == "<=" ) {
-        
-      // } // else if
-      
-    } // if
-
-    */
-
-
-  
-  
-  
-  
-  private static String calculate(Stack<String> commandstack) { // 計算四則運算
     List<String> list = Arrays.asList("+", "-", "*", "/", "(", ")");
+    
+    Stack<String> stack = new Stack<String>();
+    // 第一步去除括号，即先计算括号里面的
+    for(int i = 0; i<exp.length(); i++){
+        String character = String.valueOf(exp.charAt(i));
+        if (character.equals(" ")){
+            continue;
+        }
+        if (character.equals(")")){
+            // 如果遇到右括号，把栈中的数据一个一个取出来放入另外一个栈中，直到遇见左括号
+            Stack<String> sb = new Stack();
+            while (!stack.isEmpty() && !stack.peek().equals("(")){
+                sb.push(stack.pop());
+            }
+            stack.pop();// 删除栈中的左括号
+            stack.push(calculate(sb));// 将括号里面的内容计算之后重新放入栈中
+
+        }else {
+            // 没有遇到右括号
+            if (stack.isEmpty()){
+                stack.push(character);
+                continue;
+            }
+            if (list.contains(character)){
+                stack.push(character); // 如果是运算符或者左括号，直接入栈
+            }else {
+                // 如果是数字或者小数点，需要和之前入栈的数字拼接
+                if (list.contains(stack.peek())){
+                    stack.push(character); // 如果上一个入栈的不是数字或者小数点，直接入栈
+                }else { 
+                    // 如果上一个入栈的是数字或者小数点，先出栈，再拼接，最后入栈
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(stack.pop());
+                    sb.append(character);
+                    stack.push(sb.toString());
+                }
+            }
+        }
+    }
+    // 计算最后的结果
+    if (stack.size() == 1){// 计算完括号里面的，如果栈中只剩下一个元素
+        System.out.println(stack.pop());
+    }else {// 计算完括号里面的，栈中还有多个元素，继续计算
+        // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
+        Stack<String> last = new Stack<String>();
+        while (!stack.isEmpty()){
+            last.push(stack.pop());
+        }
+        System.out.println(calculate(last));
+    }
+    // jdk自带的方法计算，用于比较结果
+    System.out.println( "------");
+    return 123 ;
+}
+// 计算不带括号的字符串，但是参数栈中的数据 是倒序的，因为栈的原理是先进后出
+private static String calculate(Stack<String> exp) {
     ArrayList<String> arrayList = new ArrayList<String>();
     // 先算乘除法
-    while ( !commandstack.isEmpty()){
-        if ( commandstack.peek().equals("*") || commandstack.peek().equals("/") ) {
-            String operator = commandstack.pop();
-            String number = commandstack.pop();
+    while (!exp.isEmpty()){
+        if ("*".equals(exp.peek()) || "/".equals(exp.peek())){
+            String fuhao = exp.pop();
+            String number = exp.pop();
             String last = arrayList.remove(arrayList.size()-1);
-            if (operator.equals("*"))
-              arrayList.add(String.valueOf(Float.parseFloat(last) * Float.parseFloat(number)));
-            else 
-              arrayList.add(String.format("%.12f", Float.parseFloat(last) / Float.parseFloat(number)));
-        } // if
-        else arrayList.add(commandstack.pop());
-    } // while
-    
+            if (fuhao.equals("*")){
+                arrayList.add(new BigDecimal(last).multiply(new BigDecimal(number)).toString());
+            }else {
+                arrayList.add(new BigDecimal(last).divide(new BigDecimal(number), 12, BigDecimal.ROUND_HALF_EVEN).toString());
+            }
+        }else {
+            arrayList.add(exp.pop());
+        }
+    }
     // 再算加减法
-    float answer = Float.parseFloat(arrayList.remove(0));
+    BigDecimal b = new BigDecimal(arrayList.remove(0));
     Iterator<String> iterator = arrayList.iterator();
     while (iterator.hasNext()){
-      String next = iterator.next();
-      if (next.equals("+")){
-        answer += Float.parseFloat(iterator.next());
-      } // if
-      if (next.equals("-")){
-        answer -= Float.parseFloat(iterator.next());
-      } // if
-    } // while
-    
+        String next = iterator.next();
+        if (next.equals("+")){
+            b = b.add(new BigDecimal(iterator.next()));
+        }else if (next.equals("-")){
+            b = b.subtract(new BigDecimal(iterator.next()));
+        }
+    }
+    return b.toString();
+}
 
-    return Float.toString(answer);
-  } // calculate()
+    
+    
+    /*
+    float result = 0;
+    float prenum = 0 ;
+    boolean bigsmall = false ;
+    String op = "" ;
+    float lastNumber = 0;
+    String lastOp = "+";
+    if ( start.mitem.equals( "quit" ) ) {
+      return -99999; // 遇到"quit"时，返回特殊值
+    } // if
+    
+    Stack<String> stack = new Stack<String>();
+    
+    for ( ListNode current = start; current != null ; current = current.mnext ) {
+
+          if (current.mtype == 7){
+              // 如果遇到右括号，把栈中的数据一个一个取出来放入另外一个栈中，直到遇见左括号
+              Stack<String> sb = new Stack();
+              while (!stack.isEmpty() && !stack.peek().equals("(")){
+                  sb.push(stack.pop());
+              }
+              stack.pop();// 删除栈中的左括号
+              stack.push(calculate(sb));// 将括号里面的内容计算之后重新放入栈中
+    
+          }else {
+              // 没有遇到右括号
+              if (stack.isEmpty()){
+                  stack.push(current.mitem);
+                  continue;
+              }
+              if (current.mtype == 4 ||current.mtype == 6 ||current.mtype == 7 ||current.mtype == 8 ){
+                  stack.push(current.mitem);
+              }
+          }
+          
+          
+      }
+    
+    
+    
+      // 计算最后的结果
+      if (stack.size() == 1){// 计算完括号里面的，如果栈中只剩下一个元素
+          System.out.println(stack.pop());
+      }else {// 计算完括号里面的，栈中还有多个元素，继续计算
+          // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
+          Stack<String> last = new Stack<String>();
+          while (!stack.isEmpty()){
+              last.push(stack.pop());
+          }
+          System.out.println(calculate(last));
+      }
+
+      return 123 ;
+    } // Process()
+
+    // 计算不带括号的字符串，但是参数栈中的数据 是倒序的，因为栈的原理是先进后出
+    private static String calculate(Stack<String> exp) {
+      ArrayList<String> arrayList = new ArrayList<String>();
+      // 先算乘除法
+      while (!exp.isEmpty()){
+          if ("*".equals(exp.peek()) || "/".equals(exp.peek())){
+              String fuhao = exp.pop();
+              String number = exp.pop();
+              String last = arrayList.remove(arrayList.size()-1);
+              if (fuhao.equals("*")){
+                  arrayList.add(new BigDecimal(last).multiply(new BigDecimal(number)).toString());
+              }else {
+                  arrayList.add(new BigDecimal(last).divide(new BigDecimal(number), 12, BigDecimal.ROUND_HALF_EVEN).toString());
+              }
+          }else {
+              arrayList.add(exp.pop());
+          }
+      }
+      // 再算加减法
+      BigDecimal b = new BigDecimal(arrayList.remove(0));
+      Iterator<String> iterator = arrayList.iterator();
+      while (iterator.hasNext()){
+          String next = iterator.next();
+          if (next.equals("+")){
+              b = b.add(new BigDecimal(iterator.next()));
+          }else if (next.equals("-")){
+              b = b.subtract(new BigDecimal(iterator.next()));
+          }
+      }
+      return b.toString();
+    }
+*/
   
   
   
@@ -709,7 +778,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     Handlegrammer() ;
     ListNode end = scommandhead ;
     while ( end.mnext != null ) end = end.mnext ;
-    while ( Process( scommandhead, end ) ) {
+    while ( Process( scommandhead ) != -99999 ) {
       scommandhead = null ;
       Handlegrammer() ;
       end = scommandhead ;
