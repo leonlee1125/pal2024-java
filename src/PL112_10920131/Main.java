@@ -19,8 +19,8 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Arrays;
+import java.util.Vector;
+
 
 
 
@@ -182,7 +182,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           Addtovector( ";" ) ;
         } // if
         else if ( temp == ':' ) { // 宣告
-          if ( i+1 < word.length() && word.charAt( i+1 ) == '=' ) Addtovector( ":=" ) ;
+          if ( i+1 < word.length() && word.charAt( i+1 ) == '=' ) {
+            i++;
+            Addtovector( ":=" ) ;
+          } // if
           else {
             if ( save != "" ) { 
               Addtovector( save ) ;
@@ -268,7 +271,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           Addtovector( "(" ) ;
         } // else if
         else if ( temp == '>' ) { // op
-          if ( i+1 < word.length() && ( word.charAt( i+1 ) == '=' ) ) Addtovector( ">=" ) ;
+          if ( i+1 < word.length() && ( word.charAt( i+1 ) == '=' ) ) {
+            i++ ;
+            Addtovector( ">=" ) ;
+          } // if
           else {
             if ( save != "" ) { 
               Addtovector( save ) ;
@@ -279,8 +285,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // else 
         } // else if
         else if ( temp == '<' ) { // op
-          if ( i+1 < word.length() &&  word.charAt( i+1 ) == '=' ) Addtovector( ">=" ) ;
-          else if ( i+1 < word.length() &&  word.charAt( i+1 ) == '>' ) Addtovector( "<>" ) ;
+          if ( i+1 < word.length() &&  word.charAt( i+1 ) == '=' ) {
+            Addtovector( "<=" ) ;
+            i++ ;
+          } // if
+          else if ( i+1 < word.length() &&  word.charAt( i+1 ) == '>' ) {
+            Addtovector( "<>" ) ;
+            i++ ;
+          } // else if
           else {
             if ( save != "" ) { 
               Addtovector( save ) ;
@@ -583,10 +595,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   
   private static boolean Process( ListNode start, ListNode end ) { //
-
-    float prenum = 0 ;
-    boolean bigsmall = false ;
-
+    
+    // for ( ListNode current = start; current != end ; current = current.mnext ) 
+    // System.out.println( current.mitem );
+    
+    
     if ( start.mitem.equals( "quit" ) ) {
       return true ; // 遇到"quit"时，返回特殊值
     } // if
@@ -594,73 +607,40 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     Stack<String> cal = new Stack<String>();
     
     for ( ListNode current = start; current != end ; current = current.mnext ) { // 處理括號
-      if ( current.mtype == 7 ){
-          Stack<String> sb = new Stack();
-          while (!cal.isEmpty() && !cal.peek().equals("(")){
-              sb.push(cal.pop());
-          }
-          cal.pop();
-          cal.push(calculate(sb));
-      }
-      else cal.push(current.mitem); 
-    }
+      if ( current.mtype == 7 ) {
+        Stack<String> temp = new Stack<String>();
+        while ( cal.size() != 0 && !cal.peek().equals( "(" ) ){ 
+          temp.push( cal.pop() );
+        } // while
+        
+        cal.pop();
+        cal.push( Calculate(temp) );
+      } // if
+      else cal.push( current.mitem ); 
+    } // for
       
-    if (cal.size() == 1){// 计算完括号里面的，如果栈中只剩下一个元素
+    if ( cal.size() == 1 ){// 计算完括号里面的，如果栈中只剩下一个元素
       System.out.print( "> " );
       System.out.println(cal.pop());
-    }
+    } // if
     else {// 计算完括号里面的，栈中还有多个元素，继续计算
     // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
       Stack<String> last = new Stack<String>();
       while (!cal.isEmpty()){
         last.push(cal.pop());
-      }
+      } // while
       System.out.print( "> " );
-      System.out.println(calculate(last));
-    }
+      System.out.println(Calculate(last));
+    } // else
     return true ;
   } // Process()
 
-    /*
-    
-    if ( bigsmall ) {
-      if ( op == ">" ) {
-        // System.out.println( prenum );
-        // System.out.println( result );
-        if ( prenum > result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // if
-      else if ( op == "<=" ) {
-        if ( prenum <= result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == "<" ) {
-        if ( prenum < result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == ">=" ) {
-        if ( prenum >= result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      else if ( op == "=" ) {
-        if ( prenum == result ) System.out.println( "true" );
-        else System.out.println( "false" );
-      } // else if
-      // else if ( op == "<=" ) {
-        
-      // } // else if
-      
-    } // if
-
-    */
-
-
   
   
-  
-  
-  private static String calculate(Stack<String> commandstack) { // 計算四則運算
-    List<String> list = Arrays.asList("+", "-", "*", "/", "(", ")");
+  private static String Calculate( Stack<String> commandstack ) { // 計算四則運算
+    boolean bigsmall = false ;
+    float prenum = 0 ;
+    String op = "" ;
     ArrayList<String> arrayList = new ArrayList<String>();
     // 先算乘除法
     while ( !commandstack.isEmpty()){
@@ -676,22 +656,66 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         else arrayList.add(commandstack.pop());
     } // while
     
+    /*
+    for (int i = 0; i < arrayList.size(); i++) {
+      System.out.println("Element at index " + i + ": " + arrayList.get(i));
+    }
+    */
+    
     // 再算加减法
-    float answer = Float.parseFloat(arrayList.remove(0));
+    float result = Float.parseFloat(arrayList.remove(0));
     Iterator<String> iterator = arrayList.iterator();
     while (iterator.hasNext()){
       String next = iterator.next();
-      if (next.equals("+")){
-        answer += Float.parseFloat(iterator.next());
+      if ( next == ">" || next == ">=" || next == "<" || next == "<=" || next == "=" ) {
+        bigsmall = true ;
+        prenum = result ;
+        result = 0 ;
+        op = next ;
       } // if
-      if (next.equals("-")){
-        answer -= Float.parseFloat(iterator.next());
+      else if (next.equals("+")){
+        result += Float.parseFloat(iterator.next());
       } // if
+      else if (next.equals("-")){
+        result -= Float.parseFloat(iterator.next());
+      } // if
+      else result = Float.parseFloat(next) ;
     } // while
     
-
-    return Float.toString(answer);
-  } // calculate()
+    
+    // System.out.println(prenum);
+    // System.out.println(result);
+    
+    if ( bigsmall ) {
+      if ( op == ">" ) {
+        // System.out.println( prenum );
+        // System.out.println( result );
+        if ( prenum > result ) return "true" ;
+        else return "false" ;
+      } // if
+      else if ( op == "<=" ) {
+        if ( prenum <= result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == "<" ) {
+        if ( prenum < result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == ">=" ) {
+        if ( prenum >= result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == "=" ) {
+        if ( prenum == result ) return "true" ;
+        else return "false" ;
+      } // else if
+      // else if ( op == "<=" ) {       
+      // } // else if 
+    } // if
+    
+    return Float.toString(result);
+    
+  } // Calculate()
   
   
   
