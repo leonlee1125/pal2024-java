@@ -17,8 +17,6 @@ package PL112_10920131;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.Stack;
-import java.util.Iterator;
 import java.util.Vector;
 
 
@@ -36,6 +34,46 @@ class ListNode {  // 基本架構 ;
     this.mnext = null;
   } // ListNode()
 } // class ListNode
+
+
+class MStack {
+  private Vector<String> mstack;
+  private int mtop;
+
+  public MStack() {
+    mstack = new Vector<String>();
+    mtop = -1; // 初始化時堆疊是空的
+  } // MStack()
+
+  // 元素入棧
+  public void Push( String item ) {
+    mstack.add( item );
+    mtop++;
+  } // Push()
+
+  // 元素出棧
+  public String Pop() {
+    String item = mstack.remove( mtop );
+    mtop--;
+    return item;
+  } // Pop()
+
+  // 查看棧頂元素
+  public String Peek() {
+    return mstack.get( mtop );
+  } // Peek()
+
+  // 判斷堆疊是否為空
+  public boolean IsEmpty() {
+    return mtop == -1;
+  } // IsEmpty()
+
+  // 獲取堆疊的大小
+  public int Size() {
+    return mtop + 1;
+  } // Size()
+} // class MStack
+
 
 
 class Iddata {
@@ -171,13 +209,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // if
     
     String save = "" ;
-
+    
     while ( !hasend ) { // 主要
     // System.out.println(word);
-
+      
       for ( int i = 0; i < word.length() ; i++ ) {
         char temp = word.charAt( i ); // 获取位置i的字符
         if ( temp == ';' ) {
+          if ( save != "" ) { 
+            Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
           hasend = true ;
           Addtovector( ";" ) ;
         } // if
@@ -219,6 +262,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           
           if ( i+1 < word.length() && word.charAt( i+1 ) == ' ' ) Addtovector( "-" ) ;
           else save = "-" ;
+          
         } // else if
         else if ( temp == '*' ) {
           if ( save != "" ) { 
@@ -307,12 +351,21 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else
       } // for
       
+      // System.out.println( word );
+      // System.out.println( save );
+      
       if ( save != "" ) {
         Addtovector( save ) ;
+        if ( save.equals( "quit" ) ) {
+          hasend = true ;
+        } // if
+        
         save = "" ;
       } // if
-        
+      
       if ( !hasend && scanner.hasNext() ) word = scanner.next();
+
+      
     } // while
   } // Readcommendandstore()
   
@@ -557,10 +610,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     // Output() ;
     // System.out.println( "pp1" );
     // test() ;
-    Syntaxcheck( scommandhead ) ;
+    // Syntaxcheck( scommandhead ) ;
     // System.out.println( "pp2" );
 
-    Checkidexist( scommandhead ) ;
+    // Checkidexist( scommandhead ) ;
     
   } // Handlegrammer()
   
@@ -600,61 +653,80 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     // System.out.println( current.mitem );
     
     
-    if ( start.mitem.equals( "quit" ) ) {
-      return true ; // 遇到"quit"时，返回特殊值
+    if ( start.mitem.equals( "quit" ) || start == null ) {
+      return false ; // 遇到"quit"时，返回特殊值
     } // if
     
-    Stack<String> cal = new Stack<String>();
+    MStack cal = new MStack();
     
     for ( ListNode current = start; current != end ; current = current.mnext ) { // 處理括號
       if ( current.mtype == 7 ) {
-        Stack<String> temp = new Stack<String>();
-        while ( cal.size() != 0 && !cal.peek().equals( "(" ) ){ 
-          temp.push( cal.pop() );
+        MStack temp = new MStack();
+        while ( cal.Size() != 0 && !cal.Peek().equals( "(" ) ) { 
+          temp.Push( cal.Pop() );
         } // while
         
-        cal.pop();
-        cal.push( Calculate(temp) );
+        cal.Pop();
+        cal.Push( Calculate( temp ) );
       } // if
-      else cal.push( current.mitem ); 
+      else cal.Push( current.mitem ); 
     } // for
       
-    if ( cal.size() == 1 ){// 计算完括号里面的，如果栈中只剩下一个元素
+    if ( cal.Size() == 1 ) { // 计算完括号里面的，如果栈中只剩下一个元素
       System.out.print( "> " );
-      System.out.println(cal.pop());
+      System.out.println( cal.Pop() );
     } // if
-    else {// 计算完括号里面的，栈中还有多个元素，继续计算
+    else { // 计算完括号里面的，栈中还有多个元素，继续计算
     // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
-      Stack<String> last = new Stack<String>();
-      while (!cal.isEmpty()){
-        last.push(cal.pop());
+      MStack last = new MStack();
+      while ( !cal.IsEmpty() ) {
+        last.Push( cal.Pop() );
       } // while
+      
       System.out.print( "> " );
-      System.out.println(Calculate(last));
+      
+      String checktype = Calculate( last ) ;
+
+      
+      if ( checktype.equals( "true" ) || checktype.equals( "false" ) ) {
+        System.out.println( checktype );
+      } // if
+      else {
+        float number = Float.parseFloat( checktype );
+      
+        if ( number == ( int ) number ) {
+          int i = ( int ) number ;
+          System.out.println( i ); // 如果是整數，轉型為int並印出
+        } // if
+        else {
+          System.out.println( number );
+        } // else
+      } // else
     } // else
+    
     return true ;
   } // Process()
 
   
   
-  private static String Calculate( Stack<String> commandstack ) { // 計算四則運算
+  private static String Calculate( MStack commandstack ) { // 計算四則運算
     boolean bigsmall = false ;
     float prenum = 0 ;
     String op = "" ;
     ArrayList<String> arrayList = new ArrayList<String>();
     // 先算乘除法
-    while ( !commandstack.isEmpty()){
-        if ( commandstack.peek().equals("*") || commandstack.peek().equals("/") ) {
-            String operator = commandstack.pop();
-            String number = commandstack.pop();
-            String last = arrayList.remove(arrayList.size()-1);
-            if (operator.equals("*"))
-              arrayList.add(String.valueOf(Float.parseFloat(last) * Float.parseFloat(number)));
-            else 
-              arrayList.add(String.format("%.12f", Float.parseFloat(last) / Float.parseFloat(number)));
-        } // if
-        else arrayList.add(commandstack.pop());
-    } // while
+    while ( !commandstack.IsEmpty() ) {
+      if ( commandstack.Peek().equals( "*" ) || commandstack.Peek().equals( "/" ) ) {
+        String operator = commandstack.Pop();
+        String number = commandstack.Pop();
+        String last = arrayList.remove( arrayList.size()-1 );
+        if ( operator.equals( "*" ) )
+          arrayList.add( String.valueOf( Float.parseFloat( last ) * Float.parseFloat( number ) ) );
+        else 
+          arrayList.add( String.format( "%.12f", Float.parseFloat( last ) / Float.parseFloat( number ) ) );
+      } // if
+      else arrayList.add( commandstack.Pop() );
+    } // while 
     
     /*
     for (int i = 0; i < arrayList.size(); i++) {
@@ -663,28 +735,30 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     */
     
     // 再算加减法
-    float result = Float.parseFloat(arrayList.remove(0));
-    Iterator<String> iterator = arrayList.iterator();
-    while (iterator.hasNext()){
-      String next = iterator.next();
+    float result = Float.parseFloat( arrayList.remove( 0 ) );
+    for ( int i = 0 ; i < arrayList.size() ; i++ ) {
+      String next = arrayList.get( i ) ;
       if ( next == ">" || next == ">=" || next == "<" || next == "<=" || next == "=" ) {
+        i++; 
         bigsmall = true ;
         prenum = result ;
-        result = 0 ;
+        result = Float.parseFloat( arrayList.get( i ) ) ;
         op = next ;
       } // if
-      else if (next.equals("+")){
-        result += Float.parseFloat(iterator.next());
+      else if ( next.equals( "+" ) ) {
+        i++; 
+        result += Float.parseFloat( arrayList.get( i ) );
       } // if
-      else if (next.equals("-")){
-        result -= Float.parseFloat(iterator.next());
+      else if ( next.equals( "-" ) ) {
+        i++;
+        result -= Float.parseFloat( arrayList.get( i ) );
       } // if
-      else result = Float.parseFloat(next) ;
-    } // while
+      else result += Float.parseFloat( arrayList.get( i ) );
+    } // for
     
     
-    // System.out.println(prenum);
-    // System.out.println(result);
+     // System.out.println(prenum);
+     // System.out.println(result);
     
     if ( bigsmall ) {
       if ( op == ">" ) {
@@ -713,7 +787,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       // } // else if 
     } // if
     
-    return Float.toString(result);
+    return Float.toString( result );
     
   } // Calculate()
   
@@ -730,16 +804,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
     int testnum = scanner.nextInt();
 
-    Handlegrammer() ;
-    ListNode end = scommandhead ;
-    while ( end.mnext != null ) end = end.mnext ;
-    while ( Process( scommandhead, end ) ) {
-      scommandhead = null ;
+    if ( testnum != 0 ) {
       Handlegrammer() ;
-      end = scommandhead ;
+      ListNode end = scommandhead ;
       while ( end.mnext != null ) end = end.mnext ;
-    } // while
-
+      while ( Process( scommandhead, end ) ) {
+        scommandhead = null ;
+        Handlegrammer() ;
+        end = scommandhead ;
+        while ( end.mnext != null ) end = end.mnext ;
+      } // while
+    } // if
+    
     scanner.close();  
     System.out.println( "> Program exits..." );
   } // main()
