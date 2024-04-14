@@ -169,6 +169,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     return token.matches( "[a-zA-Z]+" );
   } // Checkisallenglish()
   
+  public static boolean IsLetterDigit( char c ) {
+    return Character.isLetter( c ) || Character.isDigit( c );
+  } // IsLetterDigit()
+  
+  
   
   static public void Addtovector( String item ) {
     int type = 0 ;
@@ -201,17 +206,24 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public void Readcommendandstore() {
     boolean hasend = false ;
-
+    
     String word = "" ;
+    String line = "" ;
     
     if ( scanner.hasNext() ) {
-      word = scanner.next();
+      line = scanner.nextLine();
+    } // if
+    
+    Scanner lineScanner = new Scanner(line); // 處理讀入
+    
+    if ( lineScanner.hasNext() ) {
+      word = lineScanner.next();
     } // if
     
     String save = "" ;
     
     while ( !hasend ) { // 主要
-    // System.out.println(word);
+      // System.out.println(word);
       
       for ( int i = 0; i < word.length() ; i++ ) {
         char temp = word.charAt( i ); // 获取位置i的字符
@@ -274,12 +286,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else if
         else if ( temp == '/' ) {
           if ( i+1 < word.length() && ( word.charAt( i+1 ) == '/' ) ) {
-            if ( save != "" ) { 
-              Addtovector( save ) ;
-              save = "" ;
-            } // if
             
-            scanner.nextLine();
+            line = scanner.nextLine();
+            while ( line.isEmpty() ) line = scanner.nextLine(); 
+            lineScanner = new Scanner(line);
+            if ( lineScanner.hasNext() ) word = lineScanner.next();
+            i = -1 ;
+            
           } // if
           else {
             if ( save != "" ) { 
@@ -347,7 +360,17 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // else
         } // else if
         else {
-          save = save + word.charAt( i ) ;
+          if ( IsLetterDigit( temp ) ) save = save + word.charAt( i ) ;
+          else {
+            scommandhead = null ;
+            System.out.println( "> Unrecognized token with first char : '" + temp + "'" );
+            save = "" ;
+            line = scanner.nextLine();
+            while ( line.isEmpty() ) line = scanner.nextLine(); 
+            lineScanner = new Scanner(line);
+            if ( lineScanner.hasNext() ) word = lineScanner.next();
+            i = -1 ;
+          } // else
         } // else
       } // for
       
@@ -363,9 +386,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         save = "" ;
       } // if
       
-      if ( !hasend && scanner.hasNext() ) word = scanner.next();
+      if ( !hasend && lineScanner.hasNext() ) word = lineScanner.next();
+      else if ( !hasend && scanner.hasNext() ) {
+        line = scanner.nextLine();
+        while ( line.isEmpty() ) line = scanner.nextLine(); 
+        lineScanner = new Scanner(line);
+        if ( lineScanner.hasNext() ) word = lineScanner.next();
+      } // if
 
-      
     } // while
   } // Readcommendandstore()
   
@@ -650,7 +678,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   private static boolean Process( ListNode start, ListNode end ) { //
     
     // for ( ListNode current = start; current != end ; current = current.mnext ) 
-    // System.out.println( current.mitem );
+    //  System.out.println( current.mitem );
     
     
     if ( start.mitem.equals( "quit" ) || start == null ) {
