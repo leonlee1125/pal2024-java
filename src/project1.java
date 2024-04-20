@@ -1,4 +1,4 @@
-package PL112_10920131;
+
 
 /*
 1 int
@@ -79,13 +79,12 @@ class MStack {
 class Iddata {
   String mstr;
   Float mnum;
-  String mtype ;
 
   // 構造函數
-  public Iddata( String str, Float num, String type ) {
+  public Iddata( String str, Float num ) {
     this.mstr = str;
     this.mnum = num;
-    this.mtype = type ;
+    
   } // Iddata()
 
   // 獲取 String
@@ -99,12 +98,6 @@ class Iddata {
     return mnum;
     
   } // GetNum()
-  
-  public String Gettype() {
-    return mtype;
-    
-  } // GetNum() 
-  
 } // class Iddata()
 
 
@@ -667,9 +660,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     // System.out.println( "pp1" );
     // test() ;
     
-    // schecksynuse = scommandhead ;
+    schecksynuse = scommandhead ;
     
-    // if ( !Syntaxcheck() ) System.out.println( "123" );
+    if ( !Syntaxcheck() ) System.out.println( "123" );
     /*
     while( !Syntaxcheck( scommandhead ) ) {
       Readcommendandstore() ;
@@ -691,14 +684,35 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     scommandhead = null;
   } // Output()
   
-  // =======================================================================================================
+  static public float Getnumber( String item ) {
+    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
+      Iddata pair = sgdefinename.get( i );
+      if ( pair.GetStr().equals( item ) ) {
+        return pair.GetNum();
+      } // if
+    } // for
+    // 沒有找到匹配的字符串，返回 null 或拋出異常
+    return -999; // 或者可以選擇拋出一個異常
+  } // Getnumber()
   
-  private static float calculateans( ListNode start, ListNode end ) { //
+  
+  static public void AddData( String str, Float num ) {
+    // 創建一個 StringFloatPair 對象
+    Iddata pair = new Iddata( str, num );
+    // 將對象添加到列表中
+    sgdefinename.add( pair );
+  } // AddData()
+  
+  
+  private static boolean Process( ListNode start, ListNode end ) { //
     
-    // for ( ListNode current = start; current != end ; current = current.mnext ) 
-    // System.out.println( current.mitem ) ;
-
-    if ( start == end ) return 0 ;      
+    for ( ListNode current = start; current != end ; current = current.mnext ) 
+      System.out.println( current.mitem );
+    
+    
+    if ( start.mitem.equals( "quit" ) || start == null ) {
+      return false ; // 遇到"quit"时，返回特殊值
+    } // if
     
     MStack cal = new MStack();
     
@@ -739,16 +753,16 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       
         if ( number == ( int ) number ) {
           int i = ( int ) number ;
-          return i; // 如果是整數，轉型為int並印出
+          System.out.println( i ); // 如果是整數，轉型為int並印出
         } // if
         else {
-          return number ;
+          System.out.println( number );
         } // else
       } // else
     } // else
     
-    return 0 ;
-  } // calculateans()
+    return true ;
+  } // Process()
 
   
   
@@ -835,66 +849,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Calculate()
   
   
-  static public float Getnumber( String item ) {
-    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
-      Iddata pair = sgdefinename.get( i );
-      if ( pair.GetStr().equals( item ) ) {
-        return pair.GetNum();
-      } // if
-    } // for
-    // 沒有找到匹配的字符串，返回 null 或拋出異常
-    return -999; // 或者可以選擇拋出一個異常
-  } // Getnumber()
   
   
-  static public void AddData( String str, Float num, String type ) {
-    // 創建一個 StringFloatPair 對象
-    Iddata pair = new Iddata( str, num, type );
-    // 將對象添加到列表中
-    sgdefinename.add( pair );
-  } // AddData()
-  
-  
-  
-  
-  public static boolean dealwithprocess( ListNode start, ListNode end ) {
-    ListNode startcopy = start ;
-    
-    if ( startcopy.mitem.equals( "Done" ) ) {
-      if ( startcopy.mnext != null ) startcopy = startcopy.mnext ;
-      if ( startcopy.mitem.equals( "(" ) ) {
-        if ( startcopy.mnext != null ) startcopy = startcopy.mnext ;
-        if ( startcopy.mitem.equals( ")" ) ) return false ; // 遇到"Done()"时，返回特殊值
-      } // if
-    } // if
-    
-    for ( ListNode current = start; current != end ; current = current.mnext ) {
-      if ( current.mitem.equals( "int" ) ) {
-        current = current.mnext ;
-        if( current.mtype == 3 ) 
-          AddData( current.mitem, calculateans( current.mnext, end ), "int" ) ; 
-        else System.out.println( "> error" );  
-      } // if
-       
-      if ( current.mitem.equals( "cout" ) ) {
-      
-      
-      }
-      
-      
-      
-      
-      
-    }
-    return false ;
-  }
   
   
   
   
   
   public static void main( String[] args ) {
-    System.out.println( "Our-C running ..." );
+    System.out.println( "Program starts..." );
   
     int testnum = scanner.nextInt();
 
@@ -902,7 +865,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       Handlegrammer() ;
       ListNode end = scommandhead ;
       while ( end.mnext != null ) end = end.mnext ;
-      while ( dealwithprocess( scommandhead, end ) ) {
+      while ( Process( scommandhead, end ) ) {
         scommandhead = null ;
         Handlegrammer() ;
         end = scommandhead ;
@@ -911,6 +874,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // if
     
     scanner.close();  
-    System.out.println( "> Our-C exited ..." );
+    System.out.println( "> Program exits..." );
   } // main()
 } // class Main()
