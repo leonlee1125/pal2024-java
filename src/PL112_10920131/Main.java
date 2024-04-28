@@ -183,6 +183,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public int sreadline = 0 ;
   
+  static public boolean spreif = false ;
+  
+  static public boolean sifhasprint = false ;
+  
   static public boolean sisfirst = true ;
   
   static public boolean sissetcommand = false ;
@@ -324,7 +328,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     if ( item.equals( "cout" ) ) return true ;
     if ( item.equals( "string" ) ) return true ;
     if ( item.equals( "Done" ) ) return true ;
-
+    if ( item.equals( "if" ) ) return true ;
+    if ( item.equals( "else" ) ) return true ;
+    if ( item.equals( "while" ) ) return true ;
 
     
     return false ;
@@ -436,13 +442,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
           if ( noerror ) noerror = Addtovector( line.substring( firstchar, i ) ) ;
         } // else if
-        else if ( temp == '=' ) {
+        else if ( temp == '=' ) {    
           if ( save != "" ) { 
             noerror = Addtovector( save ) ;
             save = "" ;
           } // if
           
-          if ( noerror ) noerror = Addtovector( "=" ) ;
+          if ( i+1 < line.length() && line.charAt( i+1 ) == '=' && noerror ) 
+            noerror = Addtovector( "==" ) ;
+          else if ( noerror ) noerror = Addtovector( "=" ) ;
         } // else if
         else if ( temp == '+' ) {
           if ( save != "" ) { 
@@ -539,9 +547,23 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else if
         else if ( temp == '>' ) { // op
           if ( i+1 < line.length() && ( line.charAt( i+1 ) == '>' ) ) {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
             i++ ;
             noerror = Addtovector( ">>" ) ;
           } // if
+          else if ( i+1 < line.length() && ( line.charAt( i+1 ) == '=' ) ) {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            i++ ;
+            noerror = Addtovector( ">=" ) ;
+          } // else if
           else {
             if ( save != "" ) { 
               noerror = Addtovector( save ) ;
@@ -549,10 +571,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             } // if
             
             if ( noerror ) noerror = Addtovector( ">" ) ;
-          } // else 
+          } // else
         } // else if
         else if ( temp == '<' ) { // op
           if ( i+1 < line.length() &&  line.charAt( i+1 ) == '=' ) {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
             noerror = Addtovector( "<=" ) ;
             i++ ;
           } // if
@@ -1136,12 +1163,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Calculatestring()
 
   
-  private static float Calculateans( ListNode start, ListNode end ) { //
+  private static String Calculateans( ListNode start, ListNode end ) { //
     
     // for ( ListNode current = start; current != end ; current = current.mnext ) 
     // System.out.println( current.mitem ) ;
 
-    if ( start == end ) return 0 ;        
+    if ( start == end ) return "0" ;        
     
     MStack cal = new MStack();
     
@@ -1162,7 +1189,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           else {
             System.out.println( "> Line " + sreadline + " : undefined identifier : '" + 
                                 current.mitem + "'" ) ;
-            return -999 ;
+            return "error" ;
           } // else
         } // if
         else cal.Push( current.mitem ); 
@@ -1170,7 +1197,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // for
       
     if ( cal.Size() == 1 ) { // 计算完括号里面的，如果栈中只剩下一个元素
-      return Float.parseFloat( cal.Pop() );
+      return cal.Pop() ;
     } // if
     else { // 计算完括号里面的，栈中还有多个元素，继续计算
     // 但是此时栈中的元素是正序排列的，需要变成倒序再计算
@@ -1184,23 +1211,24 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       String checktype = Calculate( last ) ;
 
       
-      if ( checktype.equals( "true" ) || checktype.equals( "false" ) ) {
-        System.out.println( checktype );
+      if ( checktype.equals( "true" )  ) {
+        return "true" ;
       } // if
+      else if ( checktype.equals( "false" ) ) {
+        return "false" ;
+      } // else if
       else {
         float number = Float.parseFloat( checktype );
       
         if ( number == ( int ) number ) {
           int i = ( int ) number ;
-          return i; // 如果是整數，轉型為int並印出
+          return String.valueOf( i ); // 如果是整數，轉型為int並印出
         } // if
         else {
-          return number ;
+          return String.valueOf( number ) ;
         } // else
       } // else
     } // else
-    
-    return 0 ;
   } // Calculateans()
 
   
@@ -1234,7 +1262,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     float result = Float.parseFloat( arrayList.remove( 0 ) );
     for ( int i = 0 ; i < arrayList.size() ; i++ ) {
       String next = arrayList.get( i ) ;
-      if ( next == ">" || next == ">=" || next == "<" || next == "<=" || next == "=" ) {
+      if ( next == ">" || next == ">=" || next == "<" || next == "<=" || next == "==" ) {
         i++; 
         bigsmall = true ;
         prenum = result ;
@@ -1255,29 +1283,56 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     
      // System.out.println(prenum);
      // System.out.println(result);
-
+    if ( bigsmall ) {
+      if ( op == ">" ) {
+        if ( prenum > result ) return "true" ;
+        else return "false" ;
+      } // if
+      else if ( op == "<=" ) {
+        if ( prenum <= result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == "<" ) {
+        if ( prenum < result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == ">=" ) {
+        if ( prenum >= result ) return "true" ;
+        else return "false" ;
+      } // else if
+      else if ( op == "==" ) {
+        if ( prenum == result ) return "true" ;
+        else return "false" ;
+      } // else if
+      // else if ( op == "<=" ) {       
+      // } // else if 
+    } // if
+    
+    
     return Float.toString( result );
     
   } // Calculate()
   
   
   
-  public static boolean Dealwithprocess( ListNode start, ListNode end, boolean notininquotation ) {
+  public static boolean Dealwithprocess( ListNode start, ListNode end, 
+                                         boolean notininquotation, boolean needprint ) {
     ListNode temp ;
     boolean checkhasext = false ;
     String tempstr ;
     float tempfloat = 0 ;
+    
     // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
      // System.out.println( tmp.mitem ) ;
      
     
     // System.out.println( " " ) ;
-    if ( notininquotation ) System.out.print( "> " ) ;
+    if ( notininquotation && needprint && !sifhasprint ) System.out.print( "> " ) ;
     
     ListNode startcopy = start ;
     
     if ( start.mitem.equals( ";" ) ) {
-      if ( notininquotation ) System.out.println( "Statement executed ..." ) ;
+      if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
       return true ;
     } // if
     
@@ -1302,14 +1357,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         temp = current ;
         while ( current != null && current != end ) {
           while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
-          Dealwithprocess( current, temp, false ) ;
+          Dealwithprocess( current, temp, false, false ) ;
           // System.out.println( " " ) ;
           current = temp.mnext ;
           temp = temp.mnext ;
         } // while
         
         Cleaninfunction() ;
-        if ( notininquotation ) System.out.println( "Statement executed ..." ) ;
+        if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
       } // if
       else if ( current.mitem.equals( "float" ) || current.mitem.equals( "char" ) ||
                 current.mitem.equals( "int" ) ) {
@@ -1338,9 +1393,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             } // else if
             else {
               if ( notininquotation )
-                AddData( current.mitem, Calculateans( current.mnext, end ), tempstr, 1, "", false );
+                AddData( current.mitem, Float.parseFloat( Calculateans( current.mnext, end ) ), 
+                         tempstr, 1, "", false );
               else  
-                AddData( current.mitem, Calculateans( current.mnext, end ), tempstr, 1, "", true );
+                AddData( current.mitem, Float.parseFloat( Calculateans( current.mnext, end ) ),
+                         tempstr, 1, "", true );
             } // else
             
             
@@ -1451,6 +1508,54 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           System.out.println( "Statement executed ..." ) ;
         
       } // else if
+      else if ( current.mitem.equals( "if" ) ) {
+        sifhasprint = true ;
+        current = current.mnext ;  
+        temp = current ;
+        while ( !temp.mitem.equals( ")" ) ) temp = temp.mnext ;
+        if ( Calculateans( current.mnext, temp ).equals( "true" ) ) {
+
+          current = temp.mnext ;
+          temp = temp.mnext ;
+          while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
+          Dealwithprocess( current, temp, true, false ) ;
+          spreif = true ;
+          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          finish = true ;
+        } // if
+        else {
+          spreif = false ;
+          finish = true ;
+        } // else
+      } // else if
+      else if ( current.mitem.equals( "else" ) ) {
+        sifhasprint = false ;
+        if ( spreif ) {
+          spreif = false ;
+          finish = true ;
+        } // if
+        else {
+          // System.out.println( "123" ) ;
+          temp = current ;
+          while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
+          Dealwithprocess( current.mnext, temp, false, false ) ;
+          // System.out.println( "123" ) ;
+          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          finish = true ;
+        } // else 
+      } // else if
+      else if ( current.mitem.equals( "while" ) ) {
+        current = current.mnext ;  
+        temp = current ;
+        while ( !temp.mitem.equals( ")" ) ) temp = temp.mnext ;
+        if ( Calculateans( current.mnext, temp ).equals( "true" ) ) {
+          current = temp.mnext ;  
+          Dealwithprocess( current.mnext, end, false, false ) ;
+          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+        } // if
+        
+        finish = true ;
+      } // else if
       else if ( current.mtype == 1 || current.mtype == 2 ) {
 
 
@@ -1458,7 +1563,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         finish = true ;
 
         
-        if ( notininquotation ) 
+        if ( notininquotation && needprint ) 
           System.out.println( "Statement executed ..." ) ;
         
       } // else if
@@ -1480,7 +1585,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             } // if
             else if ( Findtype( temp.mitem ) == "int" || Findtype( temp.mitem ) == "float" ) {
               
-              tempfloat = Calculateans( current.mnext, end ) ;
+              tempfloat = Float.parseFloat( Calculateans( current.mnext, end ) ) ;
               if ( tempfloat != -999 ) AddData( temp.mitem, tempfloat, "int", 1, "", false ) ; 
             } // else if
             
@@ -1501,9 +1606,20 @@ class Main { // 注意類別名稱需要跟.java檔名相同
               
             } // else 
           } // else if 
+          else if ( current.mitem.equals( "+" ) ) {
+            current = current.mnext ;
+            if ( current.mitem.equals( "+" ) ) 
+              AddData( temp.mitem, Getnumber( temp.mitem ) + 1, Findtype( temp.mitem ), 1, "", false ) ; 
+            
+          } // else if
+          else if ( current.mitem.equals( "-" ) ) {
+            if ( current.mitem.equals( "-" ) ) 
+              AddData( temp.mitem, Getnumber( temp.mitem ) - 1, Findtype( temp.mitem ), 1, "", false ) ; 
+            
+          } // else if          
           
           
-          if ( notininquotation ) 
+          if ( notininquotation && needprint ) 
             System.out.println( "Statement executed ..." ) ;
         } // else
       } // else if
@@ -1529,7 +1645,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       Handlegrammer() ;
       ListNode end = scommandhead ;
       while ( end.mnext != null ) end = end.mnext ;
-      while ( Dealwithprocess( scommandhead, end, true ) ) {
+      while ( Dealwithprocess( scommandhead, end, true, true ) ) {
         scommandhead = null ;
         Handlegrammer() ;
         end = scommandhead ;
