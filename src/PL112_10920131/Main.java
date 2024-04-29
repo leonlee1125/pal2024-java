@@ -193,7 +193,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public int sreadcomma = 0 ;
   
+  static public boolean sinquotation = false ;
+  
   static public ListNode schecksynuse ;
+  
+  static public ListNode spredo ;
+  
+  static public ListNode spredoend ;
   
   private static Scanner scanner = new Scanner( System.in ); // 创建全局Scanner实例
   
@@ -275,10 +281,17 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else if ( item == ":=" ) type = 9 ;    
     else if ( item.charAt( 0 ) == '\"'  ) type = 10 ;
     else if ( item.charAt( 0 ) == '['  ) type = 11 ;
-    else type = 12 ; 
+    else if ( item.charAt( 0 ) == ';'  ) type = 12 ;
+    else type = 13 ; 
     
     // System.out.println( item );
     
+    if ( item.equals( "else" ) && !sifhasprint ) {
+      System.out.println( "> Line " + sreadline + " : unexpected token : 'else'" ) ;
+      return false ;
+    } // if
+    
+        
     if ( !sisfirst && type == 3 && !sissetcommand ) {
       if ( !Checkexist( item ) && !Checkfunctionexist( item ) ) {
         System.out.println( "> Line " + sreadline + " : undefined identifier : '" + item + "'" ) ;
@@ -289,6 +302,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
     } // if
     else if ( sisfirst && type == 3 ) {
+      // System.out.println( " 123" ) ;
       sisfirst = false ;
       if ( !Checkspecialword( item ) ) {
         if ( !Checkexist( item ) && !Checkfunctionexist( item ) ) {
@@ -302,7 +316,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // else if
     
     
-    if ( item != "{" ) sisfirst = false ;
     ListNode newNode = new ListNode( type, item );
     if ( scommandhead == null ) {
       scommandhead = newNode;
@@ -316,6 +329,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       last.mnext = newNode;
     } // else
     
+    
+    
+    if ( Checkspecialword( item ) ) spredo = newNode ;
+    if ( type == 12 ) spredoend = newNode ;
     return true ;
   } // Addtovector()
   
@@ -342,6 +359,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sisfirst = true ; 
     sissetcommand = false ;
     sreadcomma = 0 ;
+    sinquotation = false ;
     
   } // Cleanall()
   
@@ -351,7 +369,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public void Readcommendandstore() {
     boolean hasend = false ;
-    boolean inquotation = false ;
     boolean noerror = true ; 
     
     String line = "" ;
@@ -372,10 +389,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // else
     
     
-    while ( !hasend || inquotation ) { // 主要
+    while ( !hasend || sinquotation ) { // 主要
       // System.out.println(line);
       
-      for ( int i = 0; noerror && ( i < line.length() && !hasend || i < line.length() && inquotation ) ; 
+      for ( int i = 0; noerror && ( i < line.length() && !hasend || i < line.length() && sinquotation ) ; 
             i++ ) {
         char temp = line.charAt( i ); // 获取位置i的字符
         if ( temp == ' ' ) {
@@ -395,6 +412,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
           // System.out.println( slineleft );
           if ( noerror ) noerror = Addtovector( ";" ) ;
+          
+          if ( sinquotation && sissetcommand ) Dealwithprocess( spredo, spredoend, false, false ) ;
+
+          sisfirst = true ;
+          sissetcommand = false;
         } // else if
         else if ( temp == ':' ) { // 宣告
           if ( i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
@@ -511,7 +533,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           sreadcomma--;
           if ( sreadcomma < 0 ) {
             System.out.println( "> Line " + sreadline + " : unexpected token : ')'" ) ;
-            noerror = true ;
+            
+            noerror = false ;
+            sreadcomma = 0 ;
           } // if
           
           if ( noerror ) noerror = Addtovector( ")" ) ;
@@ -530,20 +554,29 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             noerror = Addtovector( save ) ;
             save = "" ;
           } // if
+          // System.out.println( "123" ) ;
           
-          inquotation = true ;
           if ( noerror ) noerror = Addtovector( "{" ) ;
+          sinquotation = true ;
+          sissetcommand = false;
+          sisfirst = true ;
         } // else if
         else if ( temp == '}' ) {
-          if ( save != "" ) { 
-            noerror = Addtovector( save ) ;
-            save = "" ;
+          if ( !sinquotation ) {
+            System.out.println( "> Line " + sreadline + " : unexpected token : '}'" ) ;
+            noerror = false ;
           } // if
-          
-          if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
-          hasend = true ;
-          inquotation = false ;
-          if ( noerror ) noerror = Addtovector( "}" ) ;
+          else {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
+            hasend = true ;
+            sinquotation = false ;
+            if ( noerror ) noerror = Addtovector( "}" ) ;
+          } // else
         } // else if
         else if ( temp == '>' ) { // op
           if ( i+1 < line.length() && ( line.charAt( i+1 ) == '>' ) ) {
@@ -601,6 +634,44 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             if ( noerror ) noerror = Addtovector( "<" ) ;
           } // else
         } // else if
+        else if ( temp == '&' ) {
+          if ( i+1 < line.length() &&  line.charAt( i+1 ) == '&' ) {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            noerror = Addtovector( "&&" ) ;
+            i++ ;      
+          } // if
+          else {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            if ( noerror ) noerror = Addtovector( "&" ) ;
+          } // else
+        } // else if 
+        else if ( temp == '|' ) {
+          if ( i+1 < line.length() &&  line.charAt( i+1 ) == '|' ) {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            noerror = Addtovector( "||" ) ;
+            i++ ;      
+          } // if
+          else {
+            if ( save != "" ) { 
+              noerror = Addtovector( save ) ;
+              save = "" ;
+            } // if
+            
+            if ( noerror ) noerror = Addtovector( "|" ) ;
+          } // else
+        } // else if 
         else if ( temp == ',' ) {
           if ( save != "" ) { 
             noerror = Addtovector( save ) ;
@@ -614,7 +685,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else
         
         
-        if ( hasend && !inquotation )  { 
+        if ( hasend && !sinquotation )  { 
           if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
         } // if
         
@@ -637,12 +708,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
       
       
-      if ( !hasend && !slineleft.trim().isEmpty() || inquotation && !slineleft.trim().isEmpty() ) {
+      if ( !hasend && !slineleft.trim().isEmpty() || sinquotation && !slineleft.trim().isEmpty() ) {
         line = slineleft;
         slineleft = "" ;
         
       } // if
-      else if ( !hasend && scanner.hasNext() || inquotation && scanner.hasNext() ) {
+      else if ( !hasend && scanner.hasNext() || sinquotation && scanner.hasNext() ) {
         line = scanner.nextLine();
         sreadline++;
         while ( line.trim().isEmpty() ) {
@@ -653,6 +724,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
       
     } // while
+    
+    // for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
+     // System.out.println( tmp.mitem ) ;
+    
     // System.out.println( "finishread" );
   } // Readcommendandstore()
   
@@ -1173,7 +1248,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     MStack cal = new MStack();
     
     for ( ListNode current = start; current != end ; current = current.mnext ) { // 處理括號
-      if ( current.mtype == 7 ) {
+      if ( current.mitem.equals( ")" )  ) {
         MStack temp = new MStack();
         while ( cal.Size() != 0 && !cal.Peek().equals( "(" ) ) { 
           temp.Push( cal.Pop() );
@@ -1314,13 +1389,71 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Calculate()
   
   
+  private static boolean Checktrue( ListNode start, ListNode end ) {
+    ListNode current = start.mnext ;
+    ListNode temp = start.mnext ;
+    boolean ans = false ;
+
+    // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
+     // System.out.println( tmp.mitem ) ;
+
+    // System.out.println( "" ) ;
+    
+    while ( current != end ) {
+      if ( current.mtype == 1 || current.mtype == 2 || current.mtype == 3 ) {
+        
+        if ( Calculateans( current, end ).equals( "true" ) ) return true ;
+        else return false ;
+      } // if
+      
+      
+      if ( current.mitem.equals( "(" ) ) {
+        int count = 0 ;
+        temp = current ;
+
+        while ( !current.mitem.equals( ")" ) || count != 1 ) {
+          if ( current.mitem.equals( "(" ) ) count++ ;
+          if ( current.mitem.equals( ")" ) )  count-- ; 
+          
+          current = current.mnext ;
+        } // while
+        
+        ans = Checktrue( temp, current ) ;
+      } // if
+        
+      if ( current.mitem.equals( "&&" ) )  {
+        // System.out.println("213") ;
+        temp = current.mnext ;
+        current = current.mnext ;
+        while ( !current.mitem.equals( ")" ) ) current = current.mnext ;
+        
+        if ( ans && Checktrue( temp, current ) ) return true;
+        else return false ;
+      } // if
+      
+      if ( current.mitem.equals( "||" ) )  {
+        temp = current.mnext;
+        current = current.mnext ;
+        while ( !current.mitem.equals( ")" ) ) current = current.mnext ;
+        
+        
+        if ( ans || Checktrue( temp, current ) ) return true;
+        else return false ;
+      } // if
+        
+      current = current.mnext ;  
+    } // while
+    
+    return ans ;
+  } // Checktrue()
+  
   
   public static boolean Dealwithprocess( ListNode start, ListNode end, 
                                          boolean notininquotation, boolean needprint ) {
     ListNode temp ;
     boolean checkhasext = false ;
     String tempstr ;
-    float tempfloat = 0 ;
+    float tempfloat = 0 ; 
     
     // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
      // System.out.println( tmp.mitem ) ;
@@ -1471,6 +1604,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             if ( !Checkexist( current.mitem ) && current.mtype != 10 ) {
               System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
                                   current.mitem + "'" ) ;
+              slineleft = "" ;
               checkhasext = false ;
             } // if
           } // if
@@ -1494,6 +1628,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             if ( !Checkexist( current.mitem ) ) {
               System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
                                   current.mitem + "'" ) ;
+              slineleft = "" ;
               checkhasext = false ;
             } // if
           } // if
@@ -1509,12 +1644,20 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         
       } // else if
       else if ( current.mitem.equals( "if" ) ) {
-        sifhasprint = true ;
-        current = current.mnext ;  
+        int counter = 0 ;
+        sifhasprint = true ; // 處理 >
         temp = current ;
-        while ( !temp.mitem.equals( ")" ) ) temp = temp.mnext ;
-        if ( Calculateans( current.mnext, temp ).equals( "true" ) ) {
-
+        
+        while ( !temp.mitem.equals( ")" ) || counter != 1 ) {
+          
+          if ( temp.mitem.equals( "(" ) ) counter++ ;
+          if ( temp.mitem.equals( ")" ) )  counter-- ; 
+          
+          temp = temp.mnext ;
+        } // while
+        
+        
+        if ( Checktrue( current.mnext, temp ) ) {
           current = temp.mnext ;
           temp = temp.mnext ;
           while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
@@ -1529,7 +1672,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else
       } // else if
       else if ( current.mitem.equals( "else" ) ) {
-        sifhasprint = false ;
+
         if ( spreif ) {
           spreif = false ;
           finish = true ;
@@ -1538,22 +1681,37 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           // System.out.println( "123" ) ;
           temp = current ;
           while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
-          Dealwithprocess( current.mnext, temp, false, false ) ;
-          // System.out.println( "123" ) ;
-          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          if ( current.mnext.mitem.equals( "if" ) ) {
+            Dealwithprocess( current.mnext, temp, true, true ) ;         
+          } // if
+          else {
+            sifhasprint = false ;
+            Dealwithprocess( current.mnext, temp, true, false ) ;
+            if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          } // else 
+          
           finish = true ;
         } // else 
       } // else if
       else if ( current.mitem.equals( "while" ) ) {
-        current = current.mnext ;  
+        int counter = 0 ;
         temp = current ;
-        while ( !temp.mitem.equals( ")" ) ) temp = temp.mnext ;
-        if ( Calculateans( current.mnext, temp ).equals( "true" ) ) {
+        
+        while ( !temp.mitem.equals( ")" ) || counter != 1 ) {
+          if ( temp.mitem.equals( "(" ) ) counter++ ;
+          if ( temp.mitem.equals( ")" ) )  counter-- ; 
+          
+          temp = temp.mnext ;
+        } // while
+        
+        // System.out.println( current.mitem ) ;
+        if ( Checktrue( current.mnext, temp )  ) {
           current = temp.mnext ;  
-          Dealwithprocess( current.mnext, end, false, false ) ;
-          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          // System.out.println(current.mitem ) ;
+          Dealwithprocess( current.mnext, end, true, false ) ;
         } // if
         
+        if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
         finish = true ;
       } // else if
       else if ( current.mtype == 1 || current.mtype == 2 ) {
