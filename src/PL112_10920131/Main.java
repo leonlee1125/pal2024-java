@@ -142,33 +142,88 @@ class Iddata {
 } // class Iddata()
 
 
+
+class DataStructureManager {
+  ArrayList<Functiondata> dataList;
+
+  public DataStructureManager() {
+    this.dataList = new ArrayList<>();
+  }
+
+  public void createDataStructure(String key) {
+      if (findDataStructure(key) == null) {
+          dataList.add(new Functiondata(key));
+      }
+  }
+
+  public void addToDataStructureList1(String key, String item) {
+      Functiondata ds = findDataStructure(key);
+      if (ds != null) {
+          ds.addToList1(item);
+      }
+  }
+
+  public void addToDataStructureList2(String key, String item) {
+      Functiondata ds = findDataStructure(key);
+      if (ds != null) {
+          ds.addToList2(item);
+      }
+  }
+
+  public ArrayList<String> getDataStructureList1(String key) {
+      Functiondata ds = findDataStructure(key);
+      return ds != null ? ds.getList1() : null;
+  }
+
+  public ArrayList<String> getDataStructureList2(String key) {
+      Functiondata ds = findDataStructure(key);
+      return ds != null ? ds.getList2() : null;
+  }
+
+  public Functiondata finddata( String mstr ) {
+      for ( Functiondata ds : dataList ) {
+          if ( ds.mstr.equals( mstr ) ) {
+              return ds;
+          } // if
+      } // for
+      return null;
+  } // finddata()
+
+  public void displayall() {
+    Functiondata ds = findDataStructure(key);
+    for ( int i = 0 ; i < dataList.size(); i++ ) {
+      System.out.println("Key: " + ds.key);
+      ds.display();
+    }
+  }
+
 class Functiondata {
   String mstr;
-  String mitem ;
-
+  ArrayList<String> minput ;
+  ArrayList<String> mitem ;
+  
   // 構造函數
-  public Functiondata( String str, String item ) {
-    this.mstr = str;
-    this.mitem = item;
-    
+  public Functiondata( String mstr ) {
+    this.mstr = mstr;
+    this.minput = new ArrayList<>();
+    this.mitem = new ArrayList<>();
   } // Functiondata()
-
-  // 獲取 String
-  public String GetStr() {
-    return mstr;
-    
-  } // GetStr()
   
-  public String Getitem() {
+  public void addinput( String item ) {
+    minput.add( item );
+  } // addinput()
+  
+  public void additem( String item ) {
+    mitem.add( item );
+  } // addinput()
+  
+  public ArrayList<String> getinput() {
+    return minput;
+  } // getinput()
+  
+  public ArrayList<String> getitem() {
     return mitem;
-    
-  } // Getitem()
-  
-  public void Setitem( String item ) {
-    this.mitem = item;
-    
-  } // Setitem()
-  
+  } // getitem()
   
 } // class Functiondata()
 
@@ -179,23 +234,27 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public ArrayList<Functiondata> sgdefinefunction = new ArrayList<Functiondata>();
 
-  static public ListNode scommandhead ;
+  static public ListNode scommandhead ; 
   
-  static public int sreadline = 0 ;
+  static public int sreadline = 0 ; // wrong line
   
-  static public boolean spreif = false ;
+  static public boolean[] spreif = new boolean[5]; // if 是否是對的
   
-  static public boolean sifhasprint = false ;
+  static public int sifhasprint = 0 ; // if 有印>
   
-  static public boolean sisfirst = true ;
+  static public boolean sisfirst = true ; // 第一個token
   
-  static public boolean sissetcommand = false ;
+  static public boolean sissetcommand = false ;  // 是否為定義句
   
-  static public int sreadcomma = 0 ;
+  static public int sreadcomma = 0 ; // 檢查括號
   
-  static public boolean sinquotation = false ;
+  static public int sreadbigcomma = 0 ; // 檢查大括號
   
-  static public ListNode schecksynuse ;
+  static public boolean sinquotation = false ; // 大括號內
+  
+  static public int slayer = 0 ; // 第幾層if
+  
+  static public boolean spreisop = false ; // error of op
   
   static public ListNode spredo ;
   
@@ -281,12 +340,20 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else if ( item == ":=" ) type = 9 ;    
     else if ( item.charAt( 0 ) == '\"'  ) type = 10 ;
     else if ( item.charAt( 0 ) == '['  ) type = 11 ;
-    else if ( item.charAt( 0 ) == ';'  ) type = 12 ;
+    else if ( item == ";"  ) type = 12 ;
     else type = 13 ; 
     
     // System.out.println( item );
+    if ( type == 4 || type == 8 ) spreisop = true ;
+    else if ( type != 12 ) spreisop = false ;
     
-    if ( item.equals( "else" ) && !sifhasprint ) {
+    // System.out.println( item + spreisop ) ;
+    if ( type == 12 && spreisop == true ) {
+      System.out.println( "> Line " + sreadline + " : unexpected token : ';'" ) ;
+      return false ;
+    } // if
+    
+    if ( item.equals( "else" ) && sifhasprint == 0 ) {
       System.out.println( "> Line " + sreadline + " : unexpected token : 'else'" ) ;
       return false ;
     } // if
@@ -302,6 +369,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
     } // if
     else if ( sisfirst && type == 3 ) {
+      if ( !item.equals( "else" ) ) {
+        if ( sifhasprint > 0 ) sifhasprint-- ;
+        if ( slayer > 0 ) slayer-- ;
+      } // if
+      
       // System.out.println( " 123" ) ;
       sisfirst = false ;
       if ( !Checkspecialword( item ) ) {
@@ -314,6 +386,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
       else sissetcommand = true ;
     } // else if
+    
+    if ( item.equals( "else" )  ) sifhasprint--;
+    if ( item.equals( "if" )  ) sifhasprint++;
     
     
     ListNode newNode = new ListNode( type, item );
@@ -359,10 +434,23 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sisfirst = true ; 
     sissetcommand = false ;
     sreadcomma = 0 ;
+    sreadbigcomma = 0 ;
     sinquotation = false ;
+    sifhasprint = 0 ;
+    spreisop = false ;
     
   } // Cleanall()
   
+  
+  static public void Cleanhalf() {
+    scommandhead = null ;
+    sisfirst = true ; 
+    sissetcommand = false ;
+    sreadcomma = 0 ;
+    sreadbigcomma = 0 ;
+    sinquotation = false ;
+    spreisop = false ;
+  } // Cleanhalf()
   
   
   static public String slineleft = "" ;
@@ -408,13 +496,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             save = "" ;
           } // if
           
-          hasend = true ;
+          
           if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
           // System.out.println( slineleft );
           if ( noerror ) noerror = Addtovector( ";" ) ;
-          
-          if ( sinquotation && sissetcommand ) Dealwithprocess( spredo, spredoend, false, false ) ;
+          if ( sinquotation && sissetcommand && noerror ) 
+            Dealwithprocess( spredo, spredoend, false, false ) ;
 
+          
+          if ( noerror ) hasend = true ;
           sisfirst = true ;
           sissetcommand = false;
         } // else if
@@ -480,7 +570,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             save = "" ;
           } // if
           
-          if ( noerror ) noerror = Addtovector( "+" ) ;
+          if ( i+1 < line.length() && line.charAt( i+1 ) == '+' ) {
+            i++;
+            noerror = Addtovector( "++" ) ;
+          } // if
+          else if ( noerror ) noerror = Addtovector( "+" ) ;
         } // else if
         else if ( temp == '-' ) {
           if ( save != "" ) { 
@@ -489,10 +583,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // if
           
           if ( i+1 < line.length() && line.charAt( i+1 ) == ' ' ) noerror = Addtovector( "-" ) ;
+          else if ( i+1 < line.length() && line.charAt( i+1 ) == '-' ) {
+            i++;
+            noerror = Addtovector( "--" ) ;
+          } // if
           else if ( i+1 < line.length() && !Character.isDigit( line.charAt( i+1 ) ) ) {
             if ( noerror ) noerror = Addtovector( "-" ) ;
-            else save = "-" ;
           } // else if
+          else save = "-" ;
         } // else if
         else if ( temp == '*' ) {
           if ( save != "" ) { 
@@ -501,6 +599,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // if
           
           if ( noerror ) noerror = Addtovector( "*" ) ;
+
         } // else if
         else if ( temp == '/' ) {
           if ( i+1 < line.length() && ( line.charAt( i+1 ) == '/' ) ) {
@@ -522,6 +621,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             } // if
             
             if ( noerror ) noerror = Addtovector( "/" ) ;
+
           } // else 
         } // else if
         else if ( temp == ')' ) {
@@ -557,12 +657,14 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           // System.out.println( "123" ) ;
           
           if ( noerror ) noerror = Addtovector( "{" ) ;
+          sreadbigcomma++;
           sinquotation = true ;
           sissetcommand = false;
           sisfirst = true ;
         } // else if
         else if ( temp == '}' ) {
-          if ( !sinquotation ) {
+          sreadbigcomma--;
+          if ( sreadbigcomma < 0 ) {
             System.out.println( "> Line " + sreadline + " : unexpected token : '}'" ) ;
             noerror = false ;
           } // if
@@ -737,261 +839,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   // =====================================================================================================
   
-  /*
-  static public boolean Command() {
-    System.out.println( "Command" );
-    if ( schecksynuse.mitem == "quit" ) return true ;
-    else if ( NOT_ID_StartArithExpOrBexp() ) {
-      // schecksynuse = schecksynuse.mnext ;
-      if ( schecksynuse.mitem == ";" ) return true ;
-    } // if
-    else if ( schecksynuse.mtype == 3 ) {
-      schecksynuse = schecksynuse.mnext;
-      if ( schecksynuse.mtype == 9 ) {
-        schecksynuse = schecksynuse.mnext ;
-        if ( ArithExp() ) {
-          while ( schecksynuse.mnext != null ) schecksynuse = schecksynuse.mnext ;
-          if ( schecksynuse.mitem == ";" ) return true ;
-        } // if
-      } // if
-      
-      schecksynuse = schecksynuse.mnext;
-      if ( IDlessArithExpOrBexp() ) {
-        while ( schecksynuse.mnext != null ) schecksynuse = schecksynuse.mnext ;
-        if ( schecksynuse.mitem == ";" ) return true ;
-      } // if
-    } // if
 
-    return false ;
-  } // Command()
-  
-  
-  static public boolean IDlessArithExpOrBexp() {
-    System.out.println( "IDlessArithExpOrBexp" );
-    while ( schecksynuse.mtype == 8 || schecksynuse.mtype == 4 ) {
-      if ( schecksynuse.mtype == 4 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Term() ) return false ;
-      } // if
-      
-      if ( schecksynuse.mtype == 8 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Factor() ) return false ;
-      } // if
-      
-      schecksynuse = schecksynuse.mnext;
-    } // while
-    
-
-    if ( schecksynuse.mitem == ";" ) return true ;
-    if ( !BooleanOpratorwithArithExp() ) return false ;
-    
-    return true ;
-  } // IDlessArithExpOrBexp()
-  
-  
-  static public boolean BooleanOprator() {
-    System.out.println( "BooleanOprator" );
-    if ( schecksynuse.mtype == 5 ) return true;
-    else return false ;
-  } // BooleanOprator()
-  
-  
-  static public boolean BooleanOpratorwithArithExp() {
-    System.out.println( "BooleanOpratorwithArithExp" );
-    if ( !BooleanOprator() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( !ArithExp() ) return false ;
-    else return true ;
-  } // BooleanOpratorwithArithExp()
-  
-
-  static public boolean NOT_ID_StartArithExpOrBexp() {
-    System.out.println( "NOT_ID_StartArithExpOrBexp" );
-    if ( !NOT_ID_StartArithExp() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-
-    System.out.println( schecksynuse.mitem );
-    
-    if ( schecksynuse.mitem == ";" ) return true ;
-    if ( !BooleanOpratorwithArithExp() ) return false ;
-
-    return true;
-  } // NOT_ID_StartArithExpOrBexp()
-  
-  
-  static public boolean NOT_ID_StartArithExp() {
-    System.out.println( "NOT_ID_StartArithExp" );
-    if ( !NOT_ID_StartTerm() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( schecksynuse.mtype == 4 ) {
-      while ( schecksynuse.mtype == 4 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Term() ) return false ;
-        else schecksynuse = schecksynuse.mnext;
-      } // while
-    
-      return true;
-    } // if
-    else return true ;
-  } // NOT_ID_StartArithExp()
-  
-  
-  static public boolean NOT_ID_StartTerm() {
-    System.out.println( "NOT_ID_StartTerm" );
-    if ( !NOT_ID_StartFactor() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( schecksynuse.mtype == 8 ) {
-      while ( schecksynuse.mtype == 8 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Factor() ) return false ;
-        else schecksynuse = schecksynuse.mnext;
-      } // while
-    
-      return true;
-    } // if
-    else return true ;
-  } // NOT_ID_StartTerm()
-  
-  
-  static public boolean NOT_ID_StartFactor() {
-    System.out.println( "NOT_ID_StartFactor" );
-    if ( schecksynuse.mtype == 4 ) {
-      if ( schecksynuse.mnext.mtype == 1 || schecksynuse.mnext.mtype == 2 ) return true; 
-      else return false;
-    } // if
-    else if ( schecksynuse.mtype == 1 || schecksynuse.mtype == 2 ) return true; 
-    else if ( schecksynuse.mtype == 5 ) {
-      if ( ArithExpwithend() ) return true;
-      else return false ;
-    } // else if
-    else return false ;
-  } // NOT_ID_StartFactor()
-  
-  
-  static public boolean ArithExp() {
-    System.out.println( "ArithExp" );
-    if ( !Term() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( schecksynuse.mtype == 4 ) {
-      while ( schecksynuse.mtype == 4 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Term() ) return false ;
-        else schecksynuse = schecksynuse.mnext;
-      } // while
-    
-      return true;
-    } // if
-    else return true ;
-  } // ArithExp()
-  
-  
-  static public boolean ArithExpwithend() {
-    System.out.println( "ArithExpwithend" );
-    if ( !Term() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( schecksynuse.mtype == 4 ) {
-      while ( schecksynuse.mtype == 4 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Term() ) return false ;
-        else schecksynuse = schecksynuse.mnext;
-      } // while
-    
-      if ( schecksynuse.mtype == 7 ) return true;
-      else return false ;
-    } // if
-    else if ( schecksynuse.mtype == 7 ) return true;
-    else return false ;
-  } // ArithExpwithend()
-  
-  
-  static public boolean Term() {
-    System.out.println( "Term" );
-    if ( !Factor() ) return false ;
-    schecksynuse = schecksynuse.mnext;
-    
-    if ( schecksynuse.mtype == 8 ) {
-      while ( schecksynuse.mtype == 8 ) {
-        schecksynuse = schecksynuse.mnext;
-        if ( !Factor() ) return false ;
-        else schecksynuse = schecksynuse.mnext;
-      } // while
-    
-      return true;
-    } // if
-    else return true ;
-  } // Term()
-  
-  
-  static public boolean Factor() {
-    System.out.println( "Factor" );
-    if ( schecksynuse.mtype == 3 ) return true ;
-    else if ( schecksynuse.mtype == 1 || schecksynuse.mtype == 2 ) return true; 
-    else if ( schecksynuse.mtype == 6 ) {
-      if ( ArithExpwithend() ) return true;
-      else return false ;
-    } // else if()
-    else return false ;
-  } // Factor()
-  
-  
-  static public boolean Syntaxcheck() {
-    System.out.println( "Syntaxcheck" );
-    if ( schecksynuse == null ) return false;
-    if ( Command() ) return true ;
-    else return false ;
-  } // Syntaxcheck()
-  
-  
-  static public boolean IsStringInList( String searchStr ) {
-    System.out.println( "IsStringInList" );
-    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
-      Iddata pair = sgdefinename.get( i );
-      if ( pair.GetStr().equals( searchStr ) ) {
-        return true; // 找到匹配的字符串，返回 true
-      } // if
-    } // for
-    
-    return false; // 沒有找到匹配的項目，返回 false
-  } // IsStringInList()
-  
-  
-  static public boolean Checkidexist( ListNode head ) {
-    System.out.println( "Checkidexist" );
-    head = head.mnext ;
-    while ( head != null ) {
-      if ( !IsStringInList( head.mitem ) ) return false ;
-      head = head.mnext ;
-    } // while
-    
-    return true ;
-  } // Checkidexist()
-  
-  */
   static public void Handlegrammer() {
     // System.out.println( "pp0" );
-    Cleanall() ;
+    if ( sifhasprint > 0 ) Cleanhalf() ;
+    else Cleanall() ;
     Readcommendandstore() ;
-    // Output() ;
-    // System.out.println( "pp1" );
-    // test() ;
-    
-    // schecksynuse = scommandhead ;
-    
-    // if ( !Syntaxcheck() ) System.out.println( "123" );
-    /*
-    while( !Syntaxcheck( scommandhead ) ) {
-      Readcommendandstore() ;
-    }
-    */
-    // System.out.println( "pp2" );
-
-    // Checkidexist( scommandhead ) ;
+    // if ( !Grammercheck() ) Readcommendandstore() ;
     
   } // Handlegrammer()
   
@@ -1346,13 +1200,17 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
       else if ( next.equals( "+" ) ) {
         i++; 
+        // System.out.println(arrayList.get( i )) ;
         result += Float.parseFloat( arrayList.get( i ) );
       } // if
       else if ( next.equals( "-" ) ) {
         i++;
         result -= Float.parseFloat( arrayList.get( i ) );
-      } // if
-      else result += Float.parseFloat( arrayList.get( i ) );
+      } // if   
+      else {
+        // System.out.println(arrayList.get( i )) ;
+        result += Float.parseFloat( arrayList.get( i ) );
+      } // else
     } // for
     
     
@@ -1395,7 +1253,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     boolean ans = false ;
 
     // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
-     // System.out.println( tmp.mitem ) ;
+      // System.out.println( tmp.mitem ) ;
 
     // System.out.println( "" ) ;
     
@@ -1456,11 +1314,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     float tempfloat = 0 ; 
     
     // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
-     // System.out.println( tmp.mitem ) ;
+      // System.out.println( tmp.mitem ) ;
      
     
     // System.out.println( " " ) ;
-    if ( notininquotation && needprint && !sifhasprint ) System.out.print( "> " ) ;
+    if ( notininquotation && needprint && sifhasprint == 0 ) System.out.print( "> " ) ;
     
     ListNode startcopy = start ;
     
@@ -1523,6 +1381,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
                 AddData( current.mitem, 0, tempstr, 1, "", false );
               else  
                 AddData( current.mitem, 0, tempstr, 1, "", true );
+            } // else if
+            else if ( current.mnext.mitem.equals( "(" ) ) {
+              
+              
+              
+              
+              
             } // else if
             else {
               if ( notininquotation )
@@ -1645,7 +1510,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // else if
       else if ( current.mitem.equals( "if" ) ) {
         int counter = 0 ;
-        sifhasprint = true ; // 處理 >
         temp = current ;
         
         while ( !temp.mitem.equals( ")" ) || counter != 1 ) {
@@ -1661,37 +1525,44 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           current = temp.mnext ;
           temp = temp.mnext ;
           while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
+          spreif[slayer] = true ;
+          slayer++ ;
+          
           Dealwithprocess( current, temp, true, false ) ;
-          spreif = true ;
+          
           if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
           finish = true ;
         } // if
         else {
-          spreif = false ;
+          spreif[slayer] = false ;
           finish = true ;
         } // else
+        
       } // else if
       else if ( current.mitem.equals( "else" ) ) {
+        // sifhasprint = 1
+        // slayer = 0
 
-        if ( spreif ) {
-          spreif = false ;
-          finish = true ;
-        } // if
-        else {
+        if ( slayer == sifhasprint && !spreif[slayer]  )  {
           // System.out.println( "123" ) ;
-          temp = current ;
-          while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
+          
           if ( current.mnext.mitem.equals( "if" ) ) {
-            Dealwithprocess( current.mnext, temp, true, true ) ;         
+            Dealwithprocess( current.mnext, end, true, true ) ;         
           } // if
           else {
-            sifhasprint = false ;
-            Dealwithprocess( current.mnext, temp, true, false ) ;
-            if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+            Dealwithprocess( current.mnext, end, true, false ) ;
+            if ( notininquotation && needprint && sifhasprint == 0 ) 
+              System.out.println( "Statement executed ..." ) ;
           } // else 
           
           finish = true ;
-        } // else 
+          if ( slayer > 0 ) slayer--;
+        } // if
+        else {
+          spreif[slayer] = false ;
+          finish = true ;
+        } // else
+        
       } // else if
       else if ( current.mitem.equals( "while" ) ) {
         int counter = 0 ;
@@ -1764,16 +1635,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
               
             } // else 
           } // else if 
-          else if ( current.mitem.equals( "+" ) ) {
-            current = current.mnext ;
-            if ( current.mitem.equals( "+" ) ) 
-              AddData( temp.mitem, Getnumber( temp.mitem ) + 1, Findtype( temp.mitem ), 1, "", false ) ; 
-            
+          else if ( current.mitem.equals( "++" ) ) {
+            AddData( temp.mitem, Getnumber( temp.mitem ) + 1, Findtype( temp.mitem ), 1, "", false ) ; 
           } // else if
-          else if ( current.mitem.equals( "-" ) ) {
-            if ( current.mitem.equals( "-" ) ) 
-              AddData( temp.mitem, Getnumber( temp.mitem ) - 1, Findtype( temp.mitem ), 1, "", false ) ; 
-            
+          else if ( current.mitem.equals( "--" ) ) {
+            AddData( temp.mitem, Getnumber( temp.mitem ) - 1, Findtype( temp.mitem ), 1, "", false ) ; 
           } // else if          
           
           
@@ -1807,7 +1673,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         scommandhead = null ;
         Handlegrammer() ;
         end = scommandhead ;
-        while ( end.mnext != null ) end = end.mnext ;
+        while ( end != null && end.mnext != null ) end = end.mnext ;
       } // while
     } // if
     
