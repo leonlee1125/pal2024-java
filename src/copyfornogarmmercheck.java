@@ -1,9 +1,40 @@
-package PL112_10920131;
+ /*package PL112_10920131;
+
+
+1 int
+2 float   
+3 string   
+4 +-
+5 operater
+6 (
+7 )
+8 / *
+9 := df
+10 '"'
+11 [
+12  other 
+
+
+
+
+VOID = 1, INT = 2, CHAR = 3, FLOAT = 4, STRING = 5, BOOL = 6;
+RETURN = 7, IF = 8, ELSE = 9, WHILE = 10, DO = 11;
+IDENTIFIER = 12, CONSTANT = 13;
+EQ = 14, NEQ = 15, LE = 16, GE = 17, AND = 18, OR = 19;
+PP = 20, MM = 21, PLUS = 22, MINUS = 23, MUL = 24, DIV = 25;
+LPAREN = 26, RPAREN = 27, LBRACE = 28, RBRACE = 29;
+LBRACKET = 30, RBRACKET = 31, SEMICOLON = 32, COMMA = 33;
+ASSIGN = 34, NOT = 35;
+
+
+
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Vector;
+
+
 
 class ListNode {  // 基本架構 ;
   int mtype;
@@ -175,8 +206,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
   static public ListNode scommandhead ; 
   
-  static public ListNode checkhead  ; // 檢查文法
-
   static public int sreadline = 0 ; // wrong line
   
   static public boolean[] spreif = new boolean[5]; // if 是否是對的
@@ -261,18 +290,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else return false ;
   } // Checkisfloat()
   
-  static public boolean CheckisConstant( String token ) {
-    if ( Checkisint( token ) ) return true ;
-    if ( Checkisfloat( token ) ) return true ;
-    if ( token.charAt( 0 ) == '"' && token.charAt( token.length() - 1 ) == '"' ) return true ;
-    if ( token.charAt( 0 ) == '\'' && token.charAt( token.length() - 1 ) == '\'' ) return true ;
-    if ( token.equals( "true" ) ) ;
-    if ( token.equals( "false" ) ) ;
-    
-    return false ;
-  } // CheckisConstant()
-  
- 
   static public boolean Checkisoktoken( char c ) {  // 
     if ( c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' ) return true ; 
     if ( c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^' ) return true ; 
@@ -286,86 +303,38 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Checkisoktoken()
   
   
-  static public boolean CheckisIdentifier( String token ) {  // 檢查英文
+  static public boolean Checkisallenglish( String token ) {  // 檢查英文
       // 正则表达式匹配字符串仅包含英文大小写字母
     return token.matches( "[a-zA-Z][a-zA-Z0-9]*" );
   } // Checkisallenglish()
-  
   
   public static boolean Isallnum( String str ) {
     return str.matches( "\\d+" );  // "\\d+"匹配一個或多個數字
   } // Isallnum()
   
-  
   public static boolean IsLetterDigit( char c ) {
     return Character.isLetter( c ) || Character.isDigit( c );
   } // IsLetterDigit()
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   
   
   static public boolean Addtovector( String item ) {
     int type = 0 ;
-    if ( CheckisIdentifier( item ) ) type = 1 ;
-    else if ( CheckisConstant( item ) ) type = 2  ;        
-    else if ( item.equals( "int" ) ) type = 3  ;   
-    else if ( item.equals( "float" ) ) type = 4 ;
-    else if ( item.equals( "char" ) ) type = 5 ;
-    else if ( item.equals( "bool" ) ) type = 6 ;    
-    else if ( item.equals( "string" ) ) type = 7 ;    
-    else if ( item.equals( "void" ) ) type = 8 ;    
-    else if ( item.equals( "if" ) ) type = 9 ;    
-    else if ( item.equals( "else" ) ) type = 10 ;
-    else if ( item.equals( "while" ) ) type = 11 ;
-    else if ( item.equals( "do" ) ) type = 12 ;
-    else if ( item.equals( "return" ) ) type = 13 ;    
-    else if ( item.equals( "(" ) ) type = 14 ;
-    else if ( item.equals( ")" ) ) type = 15 ;
-    else if ( item.equals( "[" ) ) type = 16 ;
-    else if ( item.equals( "]" ) ) type = 17 ;
-    else if ( item.equals( "{" ) ) type = 18 ;
-    else if ( item.equals( "}" ) ) type = 19 ;
-    else if ( item.equals( "+" ) ) type = 20 ;
-    else if ( item.equals( "-" ) ) type = 21 ;
-    else if ( item.equals( "*" ) ) type = 22 ;
-    else if ( item.equals( "/" ) ) type = 23 ;
-    else if ( item.equals( "%" ) ) type = 24 ;
-    else if ( item.equals( "^" ) ) type = 25 ;
-    else if ( item.equals( ">" ) ) type = 26 ;
-    else if ( item.equals( "<" ) ) type = 27 ;
-    else if ( item.equals( ">=" ) ) type = 28 ;
-    else if ( item.equals( "<=" ) ) type = 29 ;
-    else if ( item.equals( "==" ) ) type = 30 ;
-    else if ( item.equals( "!=" ) ) type = 31 ;
-    else if ( item.equals( "&" ) ) type = 32 ;
-    else if ( item.equals( "|" ) ) type = 33 ;
-    else if ( item.equals( "=" ) ) type = 34 ;
-    else if ( item.equals( "!" ) ) type = 35 ;
-    else if ( item.equals( "&&" ) ) type = 36 ;
-    else if ( item.equals( "||" ) ) type = 37 ;
-    else if ( item.equals( "+=" ) ) type = 38 ;
-    else if ( item.equals( "-=" ) ) type = 39 ;
-    else if ( item.equals( "*=" ) ) type = 40 ;
-    else if ( item.equals( "/=" ) ) type = 41 ;
-    else if ( item.equals( "%=" ) ) type = 42 ;
-    else if ( item.equals( "++" ) ) type = 43 ;
-    else if ( item.equals( "--" ) ) type = 44 ;
-    else if ( item.equals( ">>" ) ) type = 45 ;
-    else if ( item.equals( "<<" ) ) type = 46 ;
-    else if ( item.equals( ";" ) ) type = 47 ;
-    else if ( item.equals( "," ) ) type = 48 ;
-    else if ( item.equals( "?" ) ) type = 49 ;
-    else if ( item.equals( ":" ) ) type = 50 ;
-    else {
-      System.out.println( "> Line " + sreadline + " : undefined identifier : '" + item + "'" ) ;
-      return false ;
-    } // else 
+    if ( Checkisint( item ) ) type = 1 ;
+    else if ( Checkisfloat( item ) ) type = 2  ;        
+    else if ( Checkisallenglish( item ) ) type = 3  ;   
+    else if ( item == "+" || item == "-" ) type = 4 ;
+    else if ( item == "=" || item == "<>" || item == ">" || item == "<" || item == ">=" 
+              || item == "<=" ) type = 5 ;
+    else if ( item == "(" ) type = 6 ;    
+    else if ( item == ")" ) type = 7 ;    
+    else if ( item == "*" || item == "/" ) type = 8 ;    
+    else if ( item == ":=" ) type = 9 ;    
+    else if ( item.charAt( 0 ) == '\"'  ) type = 10 ;
+    else if ( item.charAt( 0 ) == '['  ) type = 11 ;
+    else if ( item == ";"  ) type = 12 ;
+    else type = 13 ; 
     
     // System.out.println( item );
-    
     if ( type == 4 || type == 8 ) spreisop = true ;
     else if ( type != 12 ) spreisop = false ;
     
@@ -416,6 +385,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( !Checkspecialword( item ) ) {
         if ( !Checkexist( item ) && !Checkfunctionexist( item ) ) {
           System.out.println( "> Line " + sreadline + " : undefined identifier : '" + item + "'" ) ;
+
+          Cleanall() ;
+          Cleaninfunction() ;
           return false;
         } // if
       } // if
@@ -439,14 +411,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       last.mnext = newNode;
     } // else
     
-    System.out.println( item ) ;
     
-    checkhead = scommandhead ;
-    if ( !parse() ) {
-      System.out.println( "> Line " + sreadline + " : undefined identifier : '" + item + "'" ) ;
-      return false ;
-    } // if
-    System.out.println( "finsisj" ) ;
     
     if ( Checkspecialword( item ) ) spredo = newNode ;
     if ( type == 12 || type == 7 ) spredoend = newNode ;
@@ -615,8 +580,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             save = "" ;
           } // if
           
-          if ( noerror ) noerror = Addtovector( "[" ) ;
-          
           int firstchar = i ;
           i++;
           char findend = line.charAt( i );
@@ -625,8 +588,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             findend = line.charAt( i );
           } // while
 
-          if ( noerror ) noerror = Addtovector( line.substring( firstchar+1, i ) ) ;
-          if ( noerror ) noerror = Addtovector( "]" ) ;
+          if ( noerror ) noerror = Addtovector( line.substring( firstchar, i ) ) ;
         } // else if
         else if ( temp == '=' ) {
           if ( save != "" ) { 
@@ -914,403 +876,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       
     } // while
     
-     for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
-      System.out.println( tmp.mitem ) ;
+    // for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
+     // System.out.println( tmp.mitem ) ;
     
     // System.out.println( "finishread" );
   } // Readcommendandstore()
   
   
-  // ======================================================================================================
   
-  static public ListNode peek() {
-    if ( checkhead != null ) {
-        return checkhead ;
-    } // if
-    
-    return null;
-  } // peek()
-
-  static public ListNode consume() {
-    ListNode token = peek();
-    if ( checkhead != null ) {
-      checkhead = checkhead.mnext;
-    } // if
-    
-    return token;
-  } // consume()
-
-  static public boolean parse() {
-    return userInput();
-  } // parse()
-
-  static public boolean userInput() {
-    if ( ( definition() || statement() ) && definitionOrStatement() ) {
-      return true;
-    } // if
-    if ( peek() != null ) {
-      System.out.println("語法錯誤: 無效的輸入。");
-      return false;
-    } // if
-    return false;
-  } // userInput()
-
-  static public boolean definitionOrStatement() {
-    while (definition() || statement()) {
-        
-    } // while
-    return true;
-  } // definitionOrStatement()
-
-  static public boolean definition() {
-    ListNode token = peek();
-    if ( token != null && token.mtype == 8 ) {
-      consume();
-      if ( consume().mtype == 1 && functionDefinitionWithoutID() ) {
-          return true;
-      } // if
-    } // if 
-    else if ( typeSpecifier() && consume().mtype == 1 && functionDefinitionOrDeclarators() ) {
-      return true;
-    } // else if
-    return false;
-  } // definition()
-
-  static public boolean typeSpecifier() {
-    ListNode token = peek();
-    if ( token != null && (token.mtype == 3 || token.mtype == 5 || token.mtype == 4 ||
-                          token.mtype == 7 || token.mtype == 6 )) {
-      consume();
-      return true;
-    } // if
-    return false;
-  } // typeSpecifier()
-
-  static public boolean functionDefinitionOrDeclarators() {
-    return functionDefinitionWithoutID() || restOfDeclarators();
-  } // functionDefinitionOrDeclarators()
-
-  static public boolean restOfDeclarators() {
-    if (peek().mtype == 16) {
-      consume();
-      if (consume().mtype == 2 && consume().mtype == 17) {
-        while (peek().mtype == 48) {
-          consume();
-          if (consume().mtype != 1 || consume().mtype != 16 ||
-              consume().mtype != 2 || consume().mtype != 17) {
-            return false;
-          } // if
-        } // while
-        return consume().mtype == 47;
-      } // if
-    } // if
-    return false;
-  } // restOfDeclarators()
-
-  static public boolean functionDefinitionWithoutID() {
-    if (consume().mtype == 14) {
-      ListNode token = peek();
-      if (token.mtype == 8 ) {
-        consume();
-        return consume().mtype == 15 && compoundStatement();
-      } // if 
-      else if (formalParameterList()) {
-        return consume().mtype == 15 && compoundStatement();
-      } // else if
-    } // if
-    return false;
-  } // functionDefinitionWithoutID()
-
-  static public boolean formalParameterList() {
-    if (typeSpecifier()) {
-      ListNode token = peek();
-      if (token.mtype == 36) {
-        consume();
-      } // if
-      if (consume().mtype == 1 && (peek().mtype == 16 && consume().mtype == 2 && consume().mtype == 17)) {
-        while (peek().mtype == 48) {
-          consume();
-          if (!typeSpecifier() || (consume().mtype == 36 && consume().mtype != 1) ||
-              (peek().mtype == 16 && consume().mtype == 2 && consume().mtype == 17)) {
-            return false;
-          } // if
-        } // while
-        return true;
-      } // if
-    } // if
-    return false;
-  } // formalParameterList()
-
-  static public boolean compoundStatement() {
-    if (consume().mtype == 18) {
-      while (declaration() || statement()) {
-          // 繼續解析
-      }
-      return consume().mtype == 19;
-    }
-    return false;
-  }
-
-  static public boolean declaration() {
-    return typeSpecifier() && consume().mtype == 1 && restOfDeclarators();
-  } // declaration()
-
-  static public boolean statement() {
-    ListNode token = peek();
-    if ( token.mtype == 47 ) {
-      consume();
-      return true;
-    } // if 
-    else if ( expression() && consume().mtype == 47 ) {
-      return true;
-    } // else if 
-    else if (token.mtype == 13) {
-      consume();
-      if (expression()) {
-        return consume().mtype == 47;
-      } // if
-      return consume().mtype == 47;
-    } // else if 
-    else if (compoundStatement()) {
-      return true;
-    } // else if 
-    else if ( token.mtype == 9 ) {
-      consume();
-      if ( consume().mtype == 14 && expression() && consume().mtype == 15 && statement() ) {
-        if ( peek().mtype == 10 ) {
-          consume();
-          return statement();
-        } // if
-        return true;
-      } // if
-    } // else if 
-    else if (token.mtype == 11) {
-      consume();
-      return consume().mtype == 14 && expression() && consume().mtype == 15 && statement();
-    } // else if 
-    else if (token.mtype == 12) {
-      consume();
-      return statement() && consume().mtype == 11 && consume().mtype == 14 
-             && expression() && consume().mtype == 15 && consume().mtype == 47;
-    } // else if
-    return false;
-  } // statement()
-
-  static public boolean expression() {
-    return basicExpression() && moreBasicExpression();
-  } // expression()
-
-  static public boolean moreBasicExpression() {
-    while (peek().mtype == 48) {
-      consume();
-      if ( !basicExpression() ) {
-          return false;
-      } // if
-    } // while
-    return true;
-  } // moreBasicExpression()
-
-  static public boolean basicExpression() {
-    ListNode token = peek();
-    if ( token.mtype == 1 ) {
-      consume();
-      return restOfIdentifierStartedBasicExp();
-    } // if 
-    else if (token.mtype == 43 || token.mtype == 44) {
-      consume();
-      return consume().mtype == 1 && restOfPPMMIdentifierStartedBasicExp();
-    } // else if 
-    else if ( sign() ) {
-      while ( sign() ) {
-        consume();
-      } // while
-      return signedUnaryExp() && restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-    } // else if 
-    else if ( token.mtype == 2 || ( token.mtype == 14 && expression() && consume().mtype == 15 ) ) {
-      consume();
-      return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-    } // else if 
-    return false;
-  } // basicExpression()
-
-  static public boolean restOfIdentifierStartedBasicExp() {
-    if ( peek().mtype == 16 ) {
-      consume();
-      if (expression() && consume().mtype == 17) {
-        if (assignmentOperator() && basicExpression()) return true;
-
-        return ( peek().mtype == 43 || peek().mtype == 44 ) && consume() != null && 
-                restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-      } // if
-    } // else if 
-    else if (peek().mtype == 14) {
-      consume();
-      if ( actualParameterList() && consume().mtype == 15 ) {
-        return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-      } // if 
-    } // else if
-    return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-  } // restOfIdentifierStartedBasicExp()
-
-  static public boolean restOfPPMMIdentifierStartedBasicExp() {
-    if ( peek().mtype == 16 ) {
-      consume();
-      return expression() && consume().mtype == 17 && restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-    } // if
-    return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-  } // restOfPPMMIdentifierStartedBasicExp()
-
-  static public boolean sign() {
-    ListNode token = peek();
-    return token.mtype == 20 || token.mtype == 21 || token.mtype == 35;
-  } // sign()
-
-  static public boolean actualParameterList() {
-    return basicExpression() && moreBasicExpression();
-  } //  actualParameterList()
-
-  static public boolean assignmentOperator() {
-    ListNode token = peek();
-    return token.mtype == 34 || token.mtype == 20 || token.mtype == 21 || token.mtype == 22 || token.mtype == 23 ||
-           token.mtype == 38 || token.mtype == 39 || token.mtype == 40 || token.mtype == 41 || token.mtype == 42;
-  } // assignmentOperator()
-
-  static public boolean restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() {
-    return restOfMaybeLogicalORExp() && ( peek().mtype == 2 && consume() != null && basicExpression() );
-  } // restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp()
-
-  static public boolean restOfMaybeLogicalORExp() {
-    while ( peek().mtype == 37 ) {
-      consume();
-      if ( !maybeLogicalANDExp() ) return false;
-    } // while
-    return true;
-  } // restOfMaybeLogicalORExp()
-
-  static public boolean maybeLogicalANDExp() {
-      return maybeBitORExp() && restOfMaybeLogicalANDExp();
-  } // maybeLogicalANDExp()
-
-  static public boolean restOfMaybeLogicalANDExp() {
-    while (peek().mtype == 36) {
-      consume();
-      if ( !maybeBitORExp() ) return false;
-      
-    } // while
-    return true;
-  } // restOfMaybeLogicalANDExp()
-
-  static public boolean maybeBitORExp() {
-    return maybeBitEXORExp() && restOfMaybeBitORExp();
-  }
-
-  static public boolean restOfMaybeBitORExp() {
-    while (peek().mtype == 37) {
-      consume();
-      if ( !maybeBitEXORExp() ) {
-        return false;
-      } // if
-    } // while
-    return true;
-  } // restOfMaybeBitORExp()
-
-  static public boolean maybeBitEXORExp() {
-    return maybeBitANDExp() && restOfMaybeBitEXORExp();
-  } // maybeBitEXORExp()
-
-  static public boolean restOfMaybeBitEXORExp() {
-    while ( peek().mtype == 34 ) {
-      consume();
-      if ( !maybeBitANDExp() ) return false;
-    } // while
-    return true;
-  } // restOfMaybeBitEXORExp()
-
-  static public boolean maybeBitANDExp() {
-    return maybeEqualityExp() && restOfMaybeBitANDExp();
-  } // maybeBitANDExp()
-
-  static public boolean restOfMaybeBitANDExp() {
-    while (peek().mtype == 36) {
-      consume();
-      if ( !maybeEqualityExp() ) return false;
-    } // while
-    return true;
-  } // restOfMaybeBitANDExp()
-
-  static public boolean maybeEqualityExp() {
-    return maybeRelationalExp() && restOfMaybeEqualityExp();
-  } // maybeEqualityExp()
-
-  static public boolean restOfMaybeEqualityExp() {
-    while ( peek().mtype == 30 || peek().mtype == 31 ) {
-      consume();
-      if (!maybeRelationalExp()) return false;
-    } // while 
-    return true;
-  } // restOfMaybeEqualityExp()
-
-  static public boolean maybeRelationalExp() {
-      return maybeShiftExp() && restOfMaybeRelationalExp();
-  }
-
-  static public boolean restOfMaybeRelationalExp() {
-    while ( peek().mtype == 29 || peek().mtype == 28 ) {
-      consume();
-      if ( !maybeShiftExp( )) return false;
-    } // while
-    return true;
-  } // restOfMaybeRelationalExp()
-
-  static public boolean maybeShiftExp() {
-    return maybeAdditiveExp() && restOfMaybeShiftExp();
-  } // maybeShiftExp()
-
-  static public boolean restOfMaybeShiftExp() {
-    while ( peek().mtype == 46 || peek().mtype == 45 ) {
-      consume();
-      if ( !maybeAdditiveExp() )  return false;
-    } // while
-    return true;
-  } // restOfMaybeShiftExp()
-
-  static public boolean maybeAdditiveExp() {
-    return maybeMultExp() && restOfMaybeAdditiveExp();
-  } // maybeAdditiveExp()
-
-  static public boolean restOfMaybeAdditiveExp() {
-    while ( peek().mtype == 20 || peek().mtype == 21 ) {
-      consume();
-      if (!maybeMultExp()) return false;
-    } // while
-    return true;
-  } // restOfMaybeAdditiveExp()
-
-  static public boolean maybeMultExp() {
-    return unaryExp() && restOfMaybeMultExp();
-  } // maybeMultExp()
-
-  static public boolean restOfMaybeMultExp() {
-    while ( peek().mtype == 22 || peek().mtype == 23 || peek().mtype == 34 ) {
-      consume();
-      if ( !unaryExp() ) return false;
-    } // while
-    return true;
-  } // restOfMaybeMultExp()
-
-  static public boolean unaryExp() {
-    return sign() && ( signedUnaryExp() || unsignedUnaryExp() );
-  } // unaryExp()
-
-  static public boolean signedUnaryExp() {
-    return consume().mtype == 1 && (consume().mtype == 14 || consume().mtype == 16) && consume().mtype == 15;
-  } // signedUnaryExp()
-
-  static public boolean unsignedUnaryExp() {
-    return consume().mtype == 1 && (consume().mtype == 14 || consume().mtype == 16) && consume().mtype == 15;
-  } // unsignedUnaryExp()
-
-
+  
   
   // =====================================================================================================
   
@@ -1801,11 +1375,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       else arrayList.add( commandstack.Pop() );
     } // while 
     
-    /*
-    for (int i = 0; i < arrayList.size(); i++) {
-      System.out.println("Element at index " + i + ": " + arrayList.get(i));
-    }
-    */
+
     
     // 再算加减法
     float result = Float.parseFloat( arrayList.remove( 0 ) );
@@ -2047,12 +1617,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
                 temp2 = temp2.mnext ;
               } // while
               
-              /*
-              while ( temp != temp2 ) {
-                System.out.println( temp.mitem ) ;
-                temp = temp.mnext ;
-              }
-              */
+
             
               if ( Dealwithprocess( temp, temp2, false, false ) ) {
                 
@@ -2405,8 +1970,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       Handlegrammer() ;
       ListNode end = scommandhead ;
       while ( end.mnext != null ) end = end.mnext ;
-      //while ( Dealwithprocess( scommandhead, end, true, true ) ) {
-      while (  true ) {
+      while ( Dealwithprocess( scommandhead, end, true, true ) ) {
         scommandhead = null ;
         Handlegrammer() ;
         end = scommandhead ;
@@ -2418,3 +1982,4 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     System.out.println( "Our-C exited ..." );
   } // main()
 } // class Main()
+*/
