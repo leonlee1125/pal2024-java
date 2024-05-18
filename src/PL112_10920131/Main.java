@@ -195,8 +195,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public int slayer = 0 ; // 第幾層if
   
-  static public boolean spreisop = false ; // error of op
-  
   static public boolean spreiscin = false ; // error of op
   static public boolean specialcheck = false ; // error of op
   
@@ -302,16 +300,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // IsLetterDigit()
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  
-  
   static public boolean Addtovector( String item ) {
     int type = 0 ;
-    if ( CheckisIdentifier( item ) ) type = 1 ;
-    else if ( CheckisConstant( item ) ) type = 2  ;        
-    else if ( item.equals( "int" ) ) type = 3  ;   
+       
+    if ( item.equals( "int" ) ) type = 3  ;   
     else if ( item.equals( "float" ) ) type = 4 ;
     else if ( item.equals( "char" ) ) type = 5 ;
     else if ( item.equals( "bool" ) ) type = 6 ;    
@@ -322,6 +315,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else if ( item.equals( "while" ) ) type = 11 ;
     else if ( item.equals( "do" ) ) type = 12 ;
     else if ( item.equals( "return" ) ) type = 13 ;    
+    else if ( CheckisIdentifier( item ) ) type = 1 ;
+    else if ( CheckisConstant( item ) ) type = 2  ; 
     else if ( item.equals( "(" ) ) type = 14 ;
     else if ( item.equals( ")" ) ) type = 15 ;
     else if ( item.equals( "[" ) ) type = 16 ;
@@ -366,9 +361,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     
     // System.out.println( item );
     
-    if ( type == 4 || type == 8 ) spreisop = true ;
-    else if ( type != 12 ) spreisop = false ;
-    
     if ( spreiscin ) {
       if (  type == 12 ) spreiscin = false ;
       else {
@@ -382,11 +374,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // else 
     } // if
       
-    // System.out.println( item + spreisop ) ;
-    if ( type == 12 && spreisop == true ) {
-      System.out.println( "> Line " + sreadline + " : unexpected token : ';'" ) ;
-      return false ;
-    } // if
     
     if ( item.equals( "else" ) && sifhasprint == 0 ) {
       System.out.println( "> Line " + sreadline + " : unexpected token : 'else'" ) ;
@@ -439,14 +426,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       last.mnext = newNode;
     } // else
     
-    System.out.println( item ) ;
+    System.out.println( item + type ) ;
     
     checkhead = scommandhead ;
-    if ( !parse() ) {
+    if ( !checkgrammer() ) {
       System.out.println( "> Line " + sreadline + " : undefined identifier : '" + item + "'" ) ;
       return false ;
     } // if
-    System.out.println( "finsisj" ) ;
     
     if ( Checkspecialword( item ) ) spredo = newNode ;
     if ( type == 12 || type == 7 ) spredoend = newNode ;
@@ -495,7 +481,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sreadbigcomma = 0 ;
     sinquotation = false ;
     sifhasprint = 0 ;
-    spreisop = false ;
     sisfirstofstate = true ;
     spreiscin = false ;
     
@@ -510,7 +495,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sreadcomma = 0 ;
     sreadbigcomma = 0 ;
     sinquotation = false ;
-    spreisop = false ;
     sisfirstofstate = false ;
     spreiscin = false ;
     // Cleandepend() ;
@@ -571,7 +555,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           // System.out.println( slineleft );
           if ( noerror ) noerror = Addtovector( ";" ) ;
           if ( sinquotation && sissetcommand && noerror )  // 括號中預先宣告  防undefine ;
-            Dealwithprocess( spredo, spredoend, false, false ) ;
+            justpass( spredo, spredoend, false, false ) ;
 
           
           if ( noerror ) hasend = true ;
@@ -914,400 +898,1267 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       
     } // while
     
-     for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
-      System.out.println( tmp.mitem ) ;
+    // for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
+     // System.out.println( tmp.mitem ) ;
     
     // System.out.println( "finishread" );
   } // Readcommendandstore()
   
   
   // ======================================================================================================
-  
-  static public ListNode peek() {
-    if ( checkhead != null ) {
-        return checkhead ;
-    } // if
-    
-    return null;
-  } // peek()
 
-  static public ListNode consume() {
-    ListNode token = peek();
-    if ( checkhead != null ) {
-      checkhead = checkhead.mnext;
-    } // if
-    
-    return token;
-  } // consume()
-
-  static public boolean parse() {
+  static public boolean checkgrammer() { // ok
     return userInput();
   } // parse()
 
-  static public boolean userInput() {
-    if ( ( definition() || statement() ) && definitionOrStatement() ) {
-      return true;
+  static public boolean userInput() { // ok
+    System.out.println( "userInput" ) ;
+    if ( definitionOrStatement() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else {
+        checkhead = checkhead.mnext ;
+        while ( checkhead.mnext != null ) {
+          if ( !definitionOrStatement() ) return false ;
+        } // while 
+        return true ;
+      } // else 
     } // if
-    if ( peek() != null ) {
-      System.out.println("語法錯誤: 無效的輸入。");
-      return false;
-    } // if
-    return false;
+    else return false;  
   } // userInput()
 
   static public boolean definitionOrStatement() {
-    while (definition() || statement()) {
-        
-    } // while
-    return true;
+    System.out.println( "definitionOrStatement" ) ;
+    ListNode temp = checkhead ; // 進來的位置
+    if ( definition() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( definitionOrStatement() ) return true ;
+      else return false  ;
+    } // if
+    else checkhead = temp ;
+      
+    if ( statement() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( definitionOrStatement() ) return true ;
+      else return false ;
+    } // if
+    return false ;
   } // definitionOrStatement()
 
   static public boolean definition() {
-    ListNode token = peek();
-    if ( token != null && token.mtype == 8 ) {
-      consume();
-      if ( consume().mtype == 1 && functionDefinitionWithoutID() ) {
-          return true;
+    System.out.println( "definition" ) ;
+    if ( checkhead == null ) return true ;
+    if ( checkhead.mtype == 8 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( functionDefinitionWithoutID() ) return true ;
+        else return false ; 
       } // if
+      else return false ;
     } // if 
-    else if ( typeSpecifier() && consume().mtype == 1 && functionDefinitionOrDeclarators() ) {
-      return true;
+    else if ( typeSpecifier() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( functionDefinitionOrDeclarators() ) return true ;
+        else return false ; 
+      } // if
+      else return false ;
     } // else if
+    
     return false;
   } // definition()
 
   static public boolean typeSpecifier() {
-    ListNode token = peek();
-    if ( token != null && (token.mtype == 3 || token.mtype == 5 || token.mtype == 4 ||
-                          token.mtype == 7 || token.mtype == 6 )) {
-      consume();
-      return true;
-    } // if
+    System.out.println( "typeSpecifier" ) ;
+    if ( checkhead == null ) return true ;
+    if ( checkhead.mtype == 3 || checkhead.mtype == 5 || checkhead.mtype == 4 ||
+         checkhead.mtype == 7 || checkhead.mtype == 6 ) return true;
+
     return false;
   } // typeSpecifier()
 
   static public boolean functionDefinitionOrDeclarators() {
-    return functionDefinitionWithoutID() || restOfDeclarators();
+    System.out.println( "functionDefinitionOrDeclarators" ) ;
+    ListNode temp = checkhead ; // 進來的位置
+    if ( functionDefinitionWithoutID() ) return true ;
+    else checkhead = temp ;
+      
+    if ( restOfDeclarators() ) return true ;
+    return false ;
+    
   } // functionDefinitionOrDeclarators()
 
   static public boolean restOfDeclarators() {
-    if (peek().mtype == 16) {
-      consume();
-      if (consume().mtype == 2 && consume().mtype == 17) {
-        while (peek().mtype == 48) {
-          consume();
-          if (consume().mtype != 1 || consume().mtype != 16 ||
-              consume().mtype != 2 || consume().mtype != 17) {
-            return false;
-          } // if
-        } // while
-        return consume().mtype == 47;
+    System.out.println( "restOfDeclarators" ) ;
+    if ( checkhead.mtype == 47 ) return true ;
+    
+    
+    if ( checkhead.mtype == 16 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 2 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype != 17 ) return false ;
+        else {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+        } // else 
       } // if
+      else return false ;
     } // if
-    return false;
+
+    while ( checkhead.mtype != 47 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 48 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 1 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 16 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( checkhead.mtype == 2 ) {
+              if ( checkhead.mnext == null ) return true ;
+              else checkhead = checkhead.mnext ;
+              
+              if ( checkhead.mtype != 17 ) return false ;
+              else {
+                if ( checkhead.mnext == null ) return true ;
+                else checkhead = checkhead.mnext ;
+              } // else 
+            } // if
+            else return false ;
+          } // if
+        } // if
+      } // if
+    } // while
+    if ( checkhead.mtype == 47 ) return true ;
+
+    return false ;
   } // restOfDeclarators()
 
   static public boolean functionDefinitionWithoutID() {
-    if (consume().mtype == 14) {
-      ListNode token = peek();
-      if (token.mtype == 8 ) {
-        consume();
-        return consume().mtype == 15 && compoundStatement();
-      } // if 
-      else if (formalParameterList()) {
-        return consume().mtype == 15 && compoundStatement();
-      } // else if
+    System.out.println( "functionDefinitionWithoutID" ) ;
+    if ( checkhead.mtype == 14 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype != 15 ) {
+        if ( checkhead.mtype == 8 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+        } // if
+        else  if ( formalParameterList() ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+        } // else if
+        else return false ;
+      } // if
+      else {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+      } // else 
+      
+      if ( compoundStatement() ) return true ;
+      else return false ;
     } // if
-    return false;
+    
+    return false ;
   } // functionDefinitionWithoutID()
 
   static public boolean formalParameterList() {
-    if (typeSpecifier()) {
-      ListNode token = peek();
-      if (token.mtype == 36) {
-        consume();
+    System.out.println( "formalParameterList" ) ;
+    if ( typeSpecifier() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 32 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
       } // if
-      if (consume().mtype == 1 && (peek().mtype == 16 && consume().mtype == 2 && consume().mtype == 17)) {
-        while (peek().mtype == 48) {
-          consume();
-          if (!typeSpecifier() || (consume().mtype == 36 && consume().mtype != 1) ||
-              (peek().mtype == 16 && consume().mtype == 2 && consume().mtype == 17)) {
-            return false;
+      
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;  
+        
+        if ( checkhead.mtype == 16 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 2 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( checkhead.mtype != 17 ) return false ;
           } // if
-        } // while
-        return true;
-      } // if
+          else return false ;
+        } // if
+        
+        if ( checkhead.mnext == null ) return true ;
+        else if ( checkhead.mnext.mtype != 48 ) return true ;
+        else {
+          while ( checkhead.mtype == 48 ) {
+            if ( typeSpecifier() ) {
+              if ( checkhead.mnext == null ) return true ;
+              else checkhead = checkhead.mnext ;
+              
+              if ( checkhead.mtype == 32 ) {
+                if ( checkhead.mnext == null ) return true ;
+                else checkhead = checkhead.mnext ;
+              } // if
+              
+              if ( checkhead.mtype == 1 ) {
+                if ( checkhead.mnext == null ) return true ;
+                else checkhead = checkhead.mnext ;  
+                
+                if ( checkhead.mtype == 16 ) {
+                  if ( checkhead.mnext == null ) return true ;
+                  else checkhead = checkhead.mnext ;
+                  
+                  if ( checkhead.mtype == 2 ) {
+                    if ( checkhead.mnext == null ) return true ;
+                    else checkhead = checkhead.mnext ;
+                    
+                    if ( checkhead.mtype != 17 ) return false ;
+                    else {
+                      if ( checkhead.mnext == null ) return true ;
+                      else {
+                        if ( checkhead.mnext == null ) return true ;
+                        else if ( checkhead.mnext.mtype != 48 ) return true ;
+                        else checkhead = checkhead.mnext ;
+                      } // else 
+                    } // else 
+                  } // if
+                  else return false ;
+               
+                } // if
+              } // if
+              else return false ;
+              
+            } // if
+          } // while
+        } // else 
+      }// if
     } // if
-    return false;
+    return false ; 
   } // formalParameterList()
 
   static public boolean compoundStatement() {
-    if (consume().mtype == 18) {
-      while (declaration() || statement()) {
-          // 繼續解析
-      }
-      return consume().mtype == 19;
-    }
+    System.out.println( "compoundStatement" ) ;
+    if ( checkhead.mtype == 18 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 19 ) return true ;
+      while ( definitionOrStatement() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 19 ) return true ;
+      } // while 
+      
+    } // if
     return false;
-  }
+  } // compoundStatement()
 
   static public boolean declaration() {
-    return typeSpecifier() && consume().mtype == 1 && restOfDeclarators();
+    System.out.println( "declaration" ) ;
+    if ( typeSpecifier() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( restOfDeclarators() ) return true ;
+        else return false ;
+      } // if
+      else return false ;
+    } // if
+    return false ;
   } // declaration()
 
   static public boolean statement() {
-    ListNode token = peek();
-    if ( token.mtype == 47 ) {
-      consume();
-      return true;
-    } // if 
-    else if ( expression() && consume().mtype == 47 ) {
-      return true;
+    System.out.println( "statement" ) ;
+    ListNode temp = checkhead ;
+    if ( checkhead.mtype == 47 ) return true ;
+    else if ( expression() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 47 ) return true ;
     } // else if 
-    else if (token.mtype == 13) {
-      consume();
-      if (expression()) {
-        return consume().mtype == 47;
+    
+    checkhead = temp ;
+    if ( checkhead.mtype == 13 ) { // return 
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 47 ) return true;
+      else if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 47 ) return true;
+        else return false ;
       } // if
-      return consume().mtype == 47;
+      else return false ; 
     } // else if 
-    else if (compoundStatement()) {
-      return true;
-    } // else if 
-    else if ( token.mtype == 9 ) {
-      consume();
-      if ( consume().mtype == 14 && expression() && consume().mtype == 15 && statement() ) {
-        if ( peek().mtype == 10 ) {
-          consume();
-          return statement();
+    
+    checkhead = temp ;
+    // System.out.println( checkhead.mitem ) ;
+    if ( compoundStatement() ) return true;
+    
+    checkhead = temp ;
+    if ( checkhead.mtype == 9 ) { // if
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 14 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( expression() ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 15 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+          
+            if ( statement() ) {
+              if ( checkhead.mnext == null ) return true ;
+              else if ( checkhead.mnext.mtype != 10 ) return true ;
+              else {
+                checkhead = checkhead.mnext ; // == 10 else 
+                if ( checkhead.mnext == null ) return true ;
+                else checkhead = checkhead.mnext ;
+                
+                if ( statement() ) return true ;
+                else return false ;
+                
+              } // else 
+            }// if
+            else return false ;
+          } // if
+          else return false ;
         } // if
-        return true;
+        else return false ;
       } // if
-    } // else if 
-    else if (token.mtype == 11) {
-      consume();
-      return consume().mtype == 14 && expression() && consume().mtype == 15 && statement();
-    } // else if 
-    else if (token.mtype == 12) {
-      consume();
-      return statement() && consume().mtype == 11 && consume().mtype == 14 
-             && expression() && consume().mtype == 15 && consume().mtype == 47;
+      else return false ;
+    } // if 
+    
+    checkhead = temp ;
+    if ( checkhead.mtype == 11 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mtype == 14 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( expression() ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 15 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( statement() ) return true ;
+            else return false ;
+
+          } // if  
+          else return false ;
+        } // if
+        else return false ;
+      } // if
+      else return false ;
+    } // if 
+    
+    checkhead = temp ;
+    if ( checkhead.mtype == 12 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( statement() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 11 ) { // while
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 14 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( expression() ) {
+              if ( checkhead.mnext == null ) return true ;
+              else checkhead = checkhead.mnext ;
+              
+              if ( checkhead.mtype == 15 ) {
+                if ( checkhead.mnext == null ) return true ;
+                else checkhead = checkhead.mnext ;
+                
+                if ( checkhead.mtype == 47 ) return true ; // ;
+                else return false ;
+              } // if  
+              else return false ;
+            } // if
+            else return false ;
+          } // if
+          else return false ;
+        } // if
+        else return false ;
+      } // if
+      else return false ;
     } // else if
-    return false;
+    return false ;
   } // statement()
 
   static public boolean expression() {
-    return basicExpression() && moreBasicExpression();
+    System.out.println( "expression" ) ;
+    if ( basicExpression() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 48 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;        
+        while ( checkhead.mtype == 48 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !basicExpression() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 48 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else 
+    } // if
+    return false ;
   } // expression()
 
-  static public boolean moreBasicExpression() {
-    while (peek().mtype == 48) {
-      consume();
-      if ( !basicExpression() ) {
-          return false;
-      } // if
-    } // while
-    return true;
-  } // moreBasicExpression()
-
   static public boolean basicExpression() {
-    ListNode token = peek();
-    if ( token.mtype == 1 ) {
-      consume();
-      return restOfIdentifierStartedBasicExp();
+    System.out.println( "basicExpression" ) ;
+    if ( checkhead.mtype == 1 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      if ( restOfIdentifierStartedBasicExp() ) return true ;
+      else return false ;
     } // if 
-    else if (token.mtype == 43 || token.mtype == 44) {
-      consume();
-      return consume().mtype == 1 && restOfPPMMIdentifierStartedBasicExp();
+    else if ( checkhead.mtype == 43 || checkhead.mtype == 44 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        if ( restOfPPMMIdentifierStartedBasicExp() ) return true ;
+        else return false ;
+      } // if
+      else return false ;
     } // else if 
     else if ( sign() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
       while ( sign() ) {
-        consume();
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
       } // while
-      return signedUnaryExp() && restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+      
+      if ( signedUnaryExp() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() )  return true ;
+        else return false ;
+        
+      } // if
+      else return false ;
     } // else if 
-    else if ( token.mtype == 2 || ( token.mtype == 14 && expression() && consume().mtype == 15 ) ) {
-      consume();
-      return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+    else if ( checkhead.mtype == 2  ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+      else return false ;
     } // else if 
+    else if ( checkhead.mtype == 14 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 15 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+          else return false ;
+        } // if  
+        else return false ;
+      } // if
+      else return false ;
+    } // else if
     return false;
   } // basicExpression()
 
   static public boolean restOfIdentifierStartedBasicExp() {
-    if ( peek().mtype == 16 ) {
-      consume();
-      if (expression() && consume().mtype == 17) {
-        if (assignmentOperator() && basicExpression()) return true;
-
-        return ( peek().mtype == 43 || peek().mtype == 44 ) && consume() != null && 
-                restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+    System.out.println( "restOfIdentifierStartedBasicExp" ) ;
+    ListNode temp = checkhead ;
+    if ( checkhead.mtype == 16 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 17 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          temp = checkhead ;
+          if ( checkhead.mtype == 43 || checkhead.mtype == 44 ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+            else return false ;
+          } // if
+          
+          if ( assignmentOperator() ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( basicExpression() ) return true ;
+            else return false ;
+          } // if
+          
+          checkhead = temp;
+          if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+          else return false ;
+          
+        } // if  
+        else return false ;
       } // if
-    } // else if 
-    else if (peek().mtype == 14) {
-      consume();
-      if ( actualParameterList() && consume().mtype == 15 ) {
-        return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
-      } // if 
+      else return false ;
+    } // if
+    else if ( checkhead.mtype == 14 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      
+      
+      if ( checkhead.mtype != 15 ) { // )
+        if ( !actualParameterList() ) return false ;
+        else {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+        }
+      } // if
+      
+      if ( checkhead.mtype == 15 ) { // )
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+        else return false ;
+      } // if
+      else return false ;
+  
     } // else if
-    return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+    else {
+      temp = checkhead ;
+      if ( checkhead.mtype == 43 || checkhead.mtype == 44 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+        else return false ;
+      } // if
+      
+      if ( assignmentOperator() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( basicExpression() ) return true ;
+        else return false ;
+      } // if
+      
+      checkhead = temp;
+      if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+      else return false ;
+    } // else 
+
   } // restOfIdentifierStartedBasicExp()
 
   static public boolean restOfPPMMIdentifierStartedBasicExp() {
-    if ( peek().mtype == 16 ) {
-      consume();
-      return expression() && consume().mtype == 17 && restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+    System.out.println( "restOfPPMMIdentifierStartedBasicExp" ) ;
+    if ( checkhead.mtype == 16 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 17 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+          else return false ;
+          
+        } // if  
+        else return false ;
+      } // if
+      else return false ;
     } // if
-    return restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp();
+    else {
+      if ( restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() ) return true ;
+      else return false ;
+    } // else
   } // restOfPPMMIdentifierStartedBasicExp()
 
   static public boolean sign() {
-    ListNode token = peek();
-    return token.mtype == 20 || token.mtype == 21 || token.mtype == 35;
+    System.out.println( "sign" ) ;
+    if ( checkhead.mtype == 20 || checkhead.mtype == 21 || checkhead.mtype == 35 ) return true ;
+    else return false ;
   } // sign()
 
   static public boolean actualParameterList() {
-    return basicExpression() && moreBasicExpression();
+    System.out.println( "actualParameterList" ) ;
+    if ( basicExpression() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 48 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;        
+        while ( checkhead.mtype == 48 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !basicExpression() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 48 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else 
+    } // if
+    return false ;
   } //  actualParameterList()
 
   static public boolean assignmentOperator() {
-    ListNode token = peek();
-    return token.mtype == 34 || token.mtype == 20 || token.mtype == 21 || token.mtype == 22 || token.mtype == 23 ||
-           token.mtype == 38 || token.mtype == 39 || token.mtype == 40 || token.mtype == 41 || token.mtype == 42;
+    System.out.println( "assignmentOperator" ) ;
+    if ( checkhead.mtype == 34 || checkhead.mtype == 38 || checkhead.mtype == 39 || checkhead.mtype == 40 ||
+         checkhead.mtype == 41 || checkhead.mtype == 42 ) return true ;
+    else return false ;
   } // assignmentOperator()
 
   static public boolean restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp() {
-    return restOfMaybeLogicalORExp() && ( peek().mtype == 2 && consume() != null && basicExpression() );
+    System.out.println( "restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp" ) ;
+    if ( restOfMaybeLogicalORExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 49 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // ?  
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        if ( basicExpression() ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          if ( checkhead.mtype != 50 ) { // :
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( basicExpression() ) return true ;
+            else return false ;  
+          } // if
+          else return false ;
+        } // if
+        else return false ;
+      } // else 
+    } // if
+    else return false ;
   } // restOfMaybeConditionalExpAndRestOfMaybeLogicalORExp()
 
   static public boolean restOfMaybeLogicalORExp() {
-    while ( peek().mtype == 37 ) {
-      consume();
-      if ( !maybeLogicalANDExp() ) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeLogicalORExp" ) ;
+    if ( restOfMaybeLogicalANDExp() ) {
+      if ( checkhead.mtype != 37 ) return true  ;
+      else {
+        while ( checkhead.mtype == 37 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeLogicalANDExp() ) return false ;
+          else if ( checkhead.mtype != 37 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeLogicalORExp()
 
   static public boolean maybeLogicalANDExp() {
-      return maybeBitORExp() && restOfMaybeLogicalANDExp();
+    System.out.println( "maybeLogicalANDExp" ) ;
+    if ( maybeBitORExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 36 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // and    
+        while ( checkhead.mtype == 36 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitORExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 36 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeLogicalANDExp()
 
   static public boolean restOfMaybeLogicalANDExp() {
-    while (peek().mtype == 36) {
-      consume();
-      if ( !maybeBitORExp() ) return false;
-      
-    } // while
-    return true;
+    System.out.println( "restOfMaybeLogicalANDExp" ) ;
+    if ( restOfMaybeBitORExp() ) {
+      if ( checkhead.mtype != 36 ) return true  ;
+      else {
+        while ( checkhead.mtype == 36 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitORExp() ) return false ;
+          else if ( checkhead.mtype != 36 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeLogicalANDExp()
 
   static public boolean maybeBitORExp() {
-    return maybeBitEXORExp() && restOfMaybeBitORExp();
-  }
+    System.out.println( "maybeBitORExp" ) ;
+    if ( maybeBitEXORExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 33 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // | 
+        while ( checkhead.mtype == 33 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitEXORExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 33 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
+  } // maybeBitORExp()
 
   static public boolean restOfMaybeBitORExp() {
-    while (peek().mtype == 37) {
-      consume();
-      if ( !maybeBitEXORExp() ) {
-        return false;
-      } // if
-    } // while
-    return true;
+    System.out.println( "restOfMaybeBitORExp" ) ;
+    if ( restOfMaybeBitEXORExp() ) {
+      if ( checkhead.mtype != 33 ) return true  ;
+      else {
+        while ( checkhead.mtype == 33 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitEXORExp() ) return false ;
+          else if ( checkhead.mtype != 33 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeBitORExp()
 
   static public boolean maybeBitEXORExp() {
-    return maybeBitANDExp() && restOfMaybeBitEXORExp();
+    System.out.println( "maybeBitEXORExp" ) ;
+    if ( maybeBitANDExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 25 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // ^
+        while ( checkhead.mtype == 25 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitANDExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 25 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeBitEXORExp()
 
   static public boolean restOfMaybeBitEXORExp() {
-    while ( peek().mtype == 34 ) {
-      consume();
-      if ( !maybeBitANDExp() ) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeBitEXORExp" ) ;
+    if ( restOfMaybeBitANDExp() ) {
+      if ( checkhead.mtype != 25 ) return true  ;
+      else {
+        while ( checkhead.mtype == 25 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeBitANDExp() ) return false ;
+          else if ( checkhead.mtype != 25 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeBitEXORExp()
 
   static public boolean maybeBitANDExp() {
-    return maybeEqualityExp() && restOfMaybeBitANDExp();
+    System.out.println( "maybeBitANDExp" ) ;
+    if ( maybeEqualityExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 32 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // &
+        while ( checkhead.mtype == 32 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeEqualityExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 32 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeBitANDExp()
 
   static public boolean restOfMaybeBitANDExp() {
-    while (peek().mtype == 36) {
-      consume();
-      if ( !maybeEqualityExp() ) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeBitANDExp" ) ;
+    if ( restOfMaybeEqualityExp() ) {
+      if ( checkhead.mtype != 32 ) return true  ;
+      else {
+        while ( checkhead.mtype == 32 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeEqualityExp() ) return false ;
+          else if ( checkhead.mtype != 32 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeBitANDExp()
 
   static public boolean maybeEqualityExp() {
-    return maybeRelationalExp() && restOfMaybeEqualityExp();
+    System.out.println( "maybeEqualityExp" ) ;
+    if ( maybeRelationalExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 30 && checkhead.mnext.mtype != 31 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // == !=
+        while ( checkhead.mtype == 30 || checkhead.mtype == 31 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeRelationalExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 30 && checkhead.mnext.mtype != 31 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeEqualityExp()
 
   static public boolean restOfMaybeEqualityExp() {
-    while ( peek().mtype == 30 || peek().mtype == 31 ) {
-      consume();
-      if (!maybeRelationalExp()) return false;
-    } // while 
-    return true;
+    System.out.println( "restOfMaybeEqualityExp" ) ;
+    if ( restOfMaybeRelationalExp() ) {
+      if ( checkhead.mtype != 30 && checkhead.mtype != 31 ) return true  ;
+      else {
+        while ( checkhead.mtype == 30 || checkhead.mtype == 31 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeRelationalExp() ) return false ;
+          else if ( checkhead.mtype != 30 && checkhead.mtype != 31 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeEqualityExp()
 
   static public boolean maybeRelationalExp() {
-      return maybeShiftExp() && restOfMaybeRelationalExp();
-  }
+    System.out.println( "maybeRelationalExp" ) ;
+    if ( maybeShiftExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 26 && checkhead.mnext.mtype != 27 && checkhead.mnext.mtype != 28
+                && checkhead.mnext.mtype != 29 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       // == !=
+        while ( checkhead.mtype == 26 || checkhead.mtype == 27 || checkhead.mtype == 28 || 
+                checkhead.mtype == 29 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeShiftExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 26 && checkhead.mnext.mtype != 27 && checkhead.mnext.mtype != 28
+                      && checkhead.mnext.mtype != 29 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
+  } // maybeRelationalExp()
 
   static public boolean restOfMaybeRelationalExp() {
-    while ( peek().mtype == 29 || peek().mtype == 28 ) {
-      consume();
-      if ( !maybeShiftExp( )) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeRelationalExp" ) ;
+    if ( restOfMaybeShiftExp() ) {
+      if ( checkhead.mtype != 26 && checkhead.mtype != 27 && checkhead.mtype != 28 && checkhead.mtype != 29 ) return true  ;
+      else {
+        while ( checkhead.mtype == 26 || checkhead.mtype == 27 || checkhead.mtype == 28 || checkhead.mtype == 29 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeShiftExp() ) return false ;
+          else if ( checkhead.mtype != 26 && checkhead.mtype != 27 && checkhead.mtype != 28 && checkhead.mtype != 29 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeRelationalExp()
 
   static public boolean maybeShiftExp() {
-    return maybeAdditiveExp() && restOfMaybeShiftExp();
+    System.out.println( "maybeShiftExp" ) ;
+    if ( maybeAdditiveExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 45 && checkhead.mnext.mtype != 46 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       //  >>  <<     
+        while ( checkhead.mtype == 45 || checkhead.mtype == 46 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeAdditiveExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 45 && checkhead.mnext.mtype != 46 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeShiftExp()
 
   static public boolean restOfMaybeShiftExp() {
-    while ( peek().mtype == 46 || peek().mtype == 45 ) {
-      consume();
-      if ( !maybeAdditiveExp() )  return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeShiftExp" ) ;
+    if ( restOfMaybeAdditiveExp() ) {
+      if ( checkhead.mtype != 45 && checkhead.mtype != 46 ) return true  ;
+      else {
+        while ( checkhead.mtype == 45 || checkhead.mtype == 46 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeAdditiveExp() ) return false ;
+          else if ( checkhead.mtype != 45 && checkhead.mtype != 46 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeShiftExp()
 
   static public boolean maybeAdditiveExp() {
-    return maybeMultExp() && restOfMaybeAdditiveExp();
+    System.out.println( "maybeAdditiveExp" ) ;
+    if ( maybeMultExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 20 && checkhead.mnext.mtype != 21 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ;       //  >>  <<     
+        while ( checkhead.mtype == 20 || checkhead.mtype == 21 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeMultExp() ) return false ;
+          else {
+            if ( checkhead.mnext == null ) return true ;
+            else if ( checkhead.mnext.mtype != 20 && checkhead.mnext.mtype != 21 ) return true ;
+            else checkhead = checkhead.mnext ;
+          } // else 
+        } // while
+      } // else
+    } // if
+    return false ;
   } // maybeAdditiveExp()
 
   static public boolean restOfMaybeAdditiveExp() {
-    while ( peek().mtype == 20 || peek().mtype == 21 ) {
-      consume();
-      if (!maybeMultExp()) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeAdditiveExp" ) ;
+
+    if ( restOfMaybeMultExp() ) {
+      if ( checkhead.mtype != 20 && checkhead.mtype != 21 ) return true  ;
+      else {
+        while ( checkhead.mtype == 20 || checkhead.mtype == 21 ) { 
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( !maybeMultExp() ) return false ;
+          else if ( checkhead.mtype != 20 && checkhead.mtype != 21 ) return true ;
+        } // while
+      } // else
+    } // if
+    return false ;
   } // restOfMaybeAdditiveExp()
 
   static public boolean maybeMultExp() {
-    return unaryExp() && restOfMaybeMultExp();
+    System.out.println( "maybeMultExp" ) ;
+    if ( unaryExp() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( restOfMaybeMultExp() ) return true ;
+      else return false ;
+    }
+    return false ;
   } // maybeMultExp()
 
   static public boolean restOfMaybeMultExp() {
-    while ( peek().mtype == 22 || peek().mtype == 23 || peek().mtype == 34 ) {
-      consume();
-      if ( !unaryExp() ) return false;
-    } // while
-    return true;
+    System.out.println( "restOfMaybeMultExp" ) ;
+    if ( checkhead.mtype == 22 || checkhead.mtype == 23 || checkhead.mtype == 24 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( !unaryExp() ) return false ;
+      else {
+        if ( checkhead.mnext == null ) return true ;
+        else if ( checkhead.mnext.mtype != 22 && checkhead.mnext.mtype != 23 && checkhead.mnext.mtype != 24 ) return true  ;
+        else {
+          checkhead = checkhead.mnext ;       //  * / %
+          while ( checkhead.mtype == 22 || checkhead.mtype == 23 || checkhead.mtype == 24 ) { 
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( !unaryExp() ) return false ;
+            else {
+              if ( checkhead.mnext == null ) return true ;
+              else if ( checkhead.mnext.mtype != 22 && checkhead.mnext.mtype != 23 && checkhead.mnext.mtype != 24 ) return true ;
+              else checkhead = checkhead.mnext ;
+            } // else 
+          } // while
+        } // else
+      } // else 
+    } // if
+    return true ;
   } // restOfMaybeMultExp()
 
   static public boolean unaryExp() {
-    return sign() && ( signedUnaryExp() || unsignedUnaryExp() );
+    System.out.println( "unaryExp" ) ;
+    if ( sign() ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      while ( sign() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+      } // while
+      
+      if ( signedUnaryExp() ) return true ;
+      else return false ;
+      
+    } // if
+    else if ( unsignedUnaryExp() )  return true ;
+    else if ( checkhead.mtype == 43 || checkhead.mtype == 44 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+        
+      if ( checkhead.mtype == 1 ) {
+        if ( checkhead.mnext == null ) return true ;
+        else if ( checkhead.mnext.mtype != 16 ) return true  ;
+        else {
+          checkhead = checkhead.mnext ; // [
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( expression() ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( checkhead.mtype == 17 ) return true ;
+            else return false ;
+          } // if
+          else return false ;
+        } // else 
+      } // if
+      else return false ;  
+    } // else if
+    return false ; 
   } // unaryExp()
 
   static public boolean signedUnaryExp() {
-    return consume().mtype == 1 && (consume().mtype == 14 || consume().mtype == 16) && consume().mtype == 15;
+    System.out.println( "signedUnaryExp" ) ;
+    if ( checkhead.mtype == 1 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 14 && checkhead.mnext.mtype != 16 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ; // 
+        if ( checkhead.mtype == 14 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 15 ) return false ;
+          else {
+            if ( actualParameterList() ) {
+              if ( checkhead.mnext == null ) return true ;
+              else checkhead = checkhead.mnext ;
+              
+              if ( checkhead.mtype == 15 ) return true ;
+              else return false ;
+            } // if
+            else return false ;
+          } // else
+        } // if
+        
+        if ( checkhead.mtype == 16 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( expression() ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( checkhead.mtype == 17 )  return true ;
+            else return false ;
+          } //if
+          else return false ;
+        } // if
+      } // else
+    } // if
+    else if ( checkhead.mtype == 2 )  return true ;
+    else if ( checkhead.mtype == 14 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+
+      if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 15 ) return true ;
+        else return false ;
+      } // if
+      else return false ;
+    } // else if
+    return false ; 
   } // signedUnaryExp()
 
   static public boolean unsignedUnaryExp() {
-    return consume().mtype == 1 && (consume().mtype == 14 || consume().mtype == 16) && consume().mtype == 15;
+    System.out.println( "unsignedUnaryExp" ) ;
+    if ( checkhead.mtype == 1 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+      
+      if ( checkhead.mnext == null ) return true ;
+      else if ( checkhead.mnext.mtype != 14 && checkhead.mnext.mtype != 16 ) return true  ;
+      else {
+        checkhead = checkhead.mnext ; // 
+        if ( checkhead.mtype == 14 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( checkhead.mtype == 15 ) return false ;
+          else {
+            if ( actualParameterList() ) {
+              if ( checkhead.mnext == null ) return true ;
+              else checkhead = checkhead.mnext ;
+              
+              if ( checkhead.mtype == 15 ) return true ;
+              else return false ;
+            } // if
+            else return false ;
+          } // else
+        } // if
+        
+        if ( checkhead.mtype == 16 ) {
+          if ( checkhead.mnext == null ) return true ;
+          else checkhead = checkhead.mnext ;
+          
+          if ( expression() ) {
+            if ( checkhead.mnext == null ) return true ;
+            else checkhead = checkhead.mnext ;
+            
+            if ( checkhead.mtype == 17 )  {
+              if ( checkhead.mnext == null ) return true ;
+              else if ( checkhead.mnext.mtype != 43 && checkhead.mnext.mtype != 44 ) return true  ;
+              else {
+                checkhead = checkhead.mnext ;
+                
+                if ( checkhead.mtype == 43 || checkhead.mtype == 44 ) return true ;
+                else return false ;
+              } // else 
+            } // if
+            else return false ;
+          } //if
+          else return false ;
+        } // if
+      } // else
+    } // if
+    else if ( checkhead.mtype == 2 )  return true ;
+    else if ( checkhead.mtype == 14 ) {
+      if ( checkhead.mnext == null ) return true ;
+      else checkhead = checkhead.mnext ;
+
+      if ( expression() ) {
+        if ( checkhead.mnext == null ) return true ;
+        else checkhead = checkhead.mnext ;
+        
+        if ( checkhead.mtype == 15 ) return true ;
+        else return false ;
+      } // if
+      else return false ;
+    } // else if
+    return false ; 
   } // unsignedUnaryExp()
 
 
@@ -2149,94 +3000,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         finish = true ;
         // System.out.println( "in" );
       } // else if
-      else if ( current.mitem.equals( "cout" ) ) {
-        current = current.mnext ;
-        checkhasext = true ;
-        boolean specialcheck = true ;
-        
-        while ( current != end && checkhasext ) {
-          if ( specialcheck && current.mitem.equals( "<<" ) ) {
-            specialcheck = false ;
-            current = current.mnext ;          
-          } // if
-          else if ( specialcheck && !current.mitem.equals( "<<" ) ) { // error
-            System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
-                                current.mitem + "'" ) ;
-
-            return false ;
-          } // else if
-          else {
-            if ( !Checkexist( current.mitem ) && current.mtype != 10 ) {
-              System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
-                                  current.mitem + "'" ) ;
-
-              return false ;
-            } // if
-            else {
-              if ( current.mnext != null ) {
-                temp = current.mnext ;  
-                if ( temp.mitem.charAt( 0 ) == '[' ) {
-                  current = current.mnext ;
-                } // if
-              } // if
-            } // else 
-            
-            specialcheck = true ;
-            current = current.mnext ;  
-          } // else
-        } // while
-        
-        
+      else if ( current.mitem.equals( "cout" ) || current.mitem.equals( "cin" ) ) {
         finish = true ;
         
-        if ( notininquotation && needprint && checkhasext ) 
+        if ( notininquotation && needprint ) 
           System.out.println( "Statement executed ..." ) ;
-        
-      } // else if
-      else if ( current.mitem.equals( "cin" ) ) {
-        current = current.mnext ;
-        checkhasext = true ;
-        boolean specialcheck = true ;
-        
-        while ( current != end && checkhasext ) {
-          if ( specialcheck && current.mitem.equals( ">>" ) ) {
-            specialcheck = false ;
-            current = current.mnext ;          
-          } // if
-          else if ( specialcheck && !current.mitem.equals( ">>" ) ) { // error
-            System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
-                                current.mitem + "'" ) ;
-
-            return false ;
-
-          } // else if
-          else {
-            if ( !Checkexist( current.mitem ) && current.mtype != 10 ) {
-              System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
-                                  current.mitem + "'" ) ;
-
-              return false ;
-            } // if
-            else {
-              if ( current.mnext != null ) {
-                temp = current.mnext ;  
-                if ( temp.mitem.charAt( 0 ) == '[' ) {
-                  current = current.mnext ;
-                } // if
-              } // if
-            } // else 
-            
-            specialcheck = true ;
-            current = current.mnext ;  
-          } // else
-        } // while
-        
-        
-        finish = true ;
-        
-        if ( notininquotation && needprint && checkhasext ) 
-          System.out.println( "Statement executed ..." ) ;
-        
       } // else if
       else if ( current.mitem.equals( "if" ) ) {
         int counter = 0 ;
@@ -2390,7 +3158,425 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     return true ;
   } // Dealwithprocess()
   
-  
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  public static boolean justpass( ListNode start, ListNode end, 
+                                         boolean notininquotation, boolean needprint ) {
+    ListNode temp ;
+    ListNode temp2 ; // use for check
+    boolean checkhasext = false ;
+    String tempstr ;
+    float tempfloat = 0 ; 
+    boolean isfunction = false ;
+    
+    // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
+      // System.out.println( tmp.mitem ) ;
+     
+    if ( start == null ) return false ;
+    // System.out.println( " " ) ;
+    if ( notininquotation && needprint && sifhasprint == 0 ) System.out.print( "> " ) ;
+    
+    ListNode startcopy = start ;
+    
+    if ( start.mitem.equals( ";" ) ) {
+      if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+      return true ;
+    } // if
+    
+    if ( startcopy.mitem.equals( "Done" ) ) {
+      if ( startcopy.mnext != null ) startcopy = startcopy.mnext ;
+      if ( startcopy.mitem.equals( "(" ) ) {
+        if ( startcopy.mnext != null ) startcopy = startcopy.mnext ;
+        if ( startcopy.mitem.equals( ")" ) ) {
+          if ( startcopy.mnext != null ) startcopy = startcopy.mnext ;
+          if ( startcopy.mitem.equals( ";" ) ) return false ;
+        }
+      } // if
+    } // if
+    // System.out.println( "123" ) ;
+    
+    boolean finish = false ;
+    for ( ListNode current = start; !finish && current != null && current != end  ; 
+          current = current.mnext ) {
+      // System.out.println( current.mitem ) ;
+      // System.out.println( end.mitem + "000" ) ;
+      
+      
+      if ( current.mitem.equals( "{" ) ) { // many command
+        current = current.mnext ;
+        temp = current ;
+        while ( current != null && current != end ) {
+          while ( !temp.mitem.equals( ";" ) && temp.mnext != end ) temp = temp.mnext ;
+          justpass( current, temp, false, false ) ;
+          // System.out.println( " " ) ;
+          current = temp.mnext ;
+          temp = temp.mnext ;
+        } // while
+        
+        Cleaninfunction() ;
+        if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+        finish = true ;
+      } // if
+      else if ( current.mtype == 3 || current.mtype == 4 || current.mtype == 5 || current.mtype == 6 ||
+                current.mtype == 7 || current.mtype == 8 ) { // define
+              
+        tempstr = current.mitem ; // type
+        current = current.mnext ;
+        
+        while ( !isfunction && current != null && current != end ) {
+          if ( current.mtype == 3 ) {
+            checkhasext = Checkexist( current.mitem ) ;
+            
+            if ( current.mnext.mtype == 11 ) {
+              temp = current.mnext ;
+              String size = temp.mitem.substring( 1, temp.mitem.length() ).trim() ;
+              if ( Isallnum( size ) ) {
+                if ( notininquotation )
+                  AddData( current.mitem, 0, tempstr + "array",
+                           Integer.parseInt( size ), "", false ) ;
+                else
+                  AddData( current.mitem, 0, tempstr + "array",
+                           Integer.parseInt( size ), "", true ) ;
+              } // if
+              else { // 該找   偷懶
+                if ( notininquotation )
+                  AddData( current.mitem, 0, tempstr + "array",
+                           5, "", false ) ;
+                else
+                  AddData( current.mitem, 0, tempstr + "array",
+                           5, "", true ) ;
+              } // else 
+            } // if
+            else if ( current.mnext.mitem.equals( "," ) ) {
+              if ( notininquotation )
+                AddData( current.mitem, 0, tempstr, 1, "", false );
+              else  
+                AddData( current.mitem, 0, tempstr, 1, "", true );
+            } // else if
+            else if ( current.mnext.mitem.equals( "(" ) ) { // add function
+              // System.out.println( "123" ) ;
+              
+              if ( Checkfunctionexist( current.mitem ) ) { 
+                Removefunction( current.mitem ) ;
+                checkhasext = true ;
+              } // if
+              
+              
+              Addfunction( current.mitem, tempstr );
+              
+              temp = current.mnext ;
+              while ( !temp.mitem.equals( ")" ) ) {
+                Addfunctioninput( current.mitem, temp.mitem ) ;
+                // System.out.println( temp.mitem ) ;
+                temp = temp.mnext ;
+              } // while
+              
+              Addfunctioninput( current.mitem, temp.mitem ) ;
+              
+              int checker = 0 ; // count big comma
+              temp2 = temp.mnext ; // {
+              temp = temp.mnext ;
+              while ( !temp2.mitem.equals( "}" ) || checker != 1 ) {
+                // System.out.println( checker ) ;
+                if ( temp2.mitem.equals( "}" ) ) checker--;
+                if ( temp2.mitem.equals( "{" ) ) checker++;          
+                temp2 = temp2.mnext ;
+              } // while
+              
+              /*
+              while ( temp != temp2 ) {
+                System.out.println( temp.mitem ) ;
+                temp = temp.mnext ;
+              }
+              */
+            
+              if ( justpass( temp, temp2, false, false ) ) {
+                
+                Addfunctionitem( current.mitem, temp.mitem ) ;
+                
+                temp = temp.mnext ; // {
+                temp2 = temp.mnext ;
+                    
+                while ( !temp.mitem.equals( "}" ) || checker != 1 ) {
+                  if ( temp.mitem.equals( "}" ) ) checker--;
+                  if ( temp.mitem.equals( "{" ) ) checker++;     
+                  Addfunctionitem( current.mitem, temp.mitem ) ;
+                  temp = temp.mnext ;
+                } // while
+                
+                Addfunctionitem( current.mitem, temp.mitem ) ;
+                // System.out.println( "123" ) ;
+                current.mitem = current.mitem + "()" ;
+                isfunction = true ;
+              } // if
+              else {
+                Removefunction( current.mitem ) ;
+              } // else 
+              
+              finish = true ; 
+            } // else if
+            else {
+              if ( notininquotation )
+                AddData( current.mitem, Float.parseFloat( Calculateans( current.mnext, end ) ), 
+                         tempstr, 1, "", false );
+              else  
+                AddData( current.mitem, Float.parseFloat( Calculateans( current.mnext, end ) ),
+                         tempstr, 1, "", true );
+            } // else
+            
+            
+            if ( notininquotation && needprint && !checkhasext ) 
+              System.out.println( "Definition of " + current.mitem + " entered ..." );
+            if ( notininquotation && needprint && checkhasext ) 
+              System.out.println( "New definition of " + current.mitem + " entered ..." );
+            if ( current.mnext != null && current.mnext.mtype == 11 ) current = current.mnext ;
+            
+          } // if
+          
+          current = current.mnext ;
+        } // while
+        
+        finish = true ;
+      } // else if
+      else if ( current.mitem.equals( "cout" ) ) {
+        current = current.mnext ;
+        checkhasext = true ;
+        boolean specialcheck = true ;
+        
+        while ( current != end && checkhasext ) {
+          if ( specialcheck && current.mitem.equals( "<<" ) ) {
+            specialcheck = false ;
+            current = current.mnext ;          
+          } // if
+          else if ( specialcheck && !current.mitem.equals( "<<" ) ) { // error
+            System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
+                                current.mitem + "'" ) ;
+
+            return false ;
+          } // else if
+          else {
+            if ( !Checkexist( current.mitem ) && current.mtype != 10 ) {
+              System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
+                                  current.mitem + "'" ) ;
+
+              return false ;
+            } // if
+            else {
+              if ( current.mnext != null ) {
+                temp = current.mnext ;  
+                if ( temp.mitem.charAt( 0 ) == '[' ) {
+                  current = current.mnext ;
+                } // if
+              } // if
+            } // else 
+            
+            specialcheck = true ;
+            current = current.mnext ;  
+          } // else
+        } // while
+        
+        
+        finish = true ;
+        
+        if ( notininquotation && needprint && checkhasext ) 
+          System.out.println( "Statement executed ..." ) ;
+        
+      } // else if
+      else if ( current.mitem.equals( "cin" ) ) {
+        current = current.mnext ;
+        checkhasext = true ;
+        boolean specialcheck = true ;
+        
+        while ( current != end && checkhasext ) {
+          if ( specialcheck && current.mitem.equals( ">>" ) ) {
+            specialcheck = false ;
+            current = current.mnext ;          
+          } // if
+          else if ( specialcheck && !current.mitem.equals( ">>" ) ) { // error
+            System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
+                                current.mitem + "'" ) ;
+
+            return false ;
+
+          } // else if
+          else {
+            if ( !Checkexist( current.mitem ) && current.mtype != 10 ) {
+              System.out.println( "Line " + sreadline + " : undefined identifier : '" + 
+                                  current.mitem + "'" ) ;
+
+              return false ;
+            } // if
+            else {
+              if ( current.mnext != null ) {
+                temp = current.mnext ;  
+                if ( temp.mitem.charAt( 0 ) == '[' ) {
+                  current = current.mnext ;
+                } // if
+              } // if
+            } // else 
+            
+            specialcheck = true ;
+            current = current.mnext ;  
+          } // else
+        } // while
+        
+        
+        finish = true ;
+        
+        if ( notininquotation && needprint && checkhasext ) 
+          System.out.println( "Statement executed ..." ) ;
+        
+      } // else if
+      else if ( current.mitem.equals( "if" ) ) {
+        int counter = 0 ;
+        temp = current ;
+        
+        while ( !temp.mitem.equals( ")" ) || counter != 1 ) {
+          
+          if ( temp.mitem.equals( "(" ) ) counter++ ;
+          if ( temp.mitem.equals( ")" ) )  counter-- ; 
+          
+          temp = temp.mnext ;
+        } // while
+        
+        
+        if ( Checktrue( current.mnext, temp ) ) {
+          current = temp.mnext ;
+          temp = temp.mnext ;
+          while ( !temp.mitem.equals( ";" ) ) temp = temp.mnext ;
+          spreif[slayer] = true ;
+          slayer++ ;
+          
+          justpass( current, temp, true, false ) ;
+          
+          if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+          finish = true ;
+        } // if
+        else {
+          spreif[slayer] = false ;
+          finish = true ;
+        } // else
+        
+      } // else if
+      else if ( current.mitem.equals( "else" ) ) {
+        // sifhasprint = 1
+        // slayer = 0
+
+        if ( slayer == sifhasprint && !spreif[slayer]  )  {
+          // System.out.println( "123" ) ;
+          
+          if ( current.mnext.mitem.equals( "if" ) ) {
+            justpass( current.mnext, end, true, true ) ;         
+          } // if
+          else {
+            justpass( current.mnext, end, true, false ) ;
+            if ( notininquotation && needprint && sifhasprint == 0 ) 
+              System.out.println( "Statement executed ..." ) ;
+          } // else 
+          
+          finish = true ;
+          if ( slayer > 0 ) slayer--;
+        } // if
+        else {
+          spreif[slayer] = false ;
+          finish = true ;
+        } // else
+        
+      } // else if
+      else if ( current.mitem.equals( "while" ) ) {
+        int counter = 0 ;
+        temp = current ;
+        
+        while ( !temp.mitem.equals( ")" ) || counter != 1 ) {
+          if ( temp.mitem.equals( "(" ) ) counter++ ;
+          if ( temp.mitem.equals( ")" ) )  counter-- ; 
+          
+          temp = temp.mnext ;
+        } // while
+        
+        // System.out.println( current.mitem ) ;
+        if ( Checktrue( current.mnext, temp )  ) {
+          current = temp.mnext ;  
+          // System.out.println(current.mitem ) ;
+
+          justpass( current.mnext, end, true, false ) ;
+        } // if
+        
+        if ( notininquotation && needprint ) System.out.println( "Statement executed ..." ) ;
+        finish = true ;
+      } // else if
+      else if ( current.mtype == 1 || current.mtype == 2 ) {
+
+
+        // AddData( current.mitem, Calculateans( current.mnext, end ), "int" ) ; 
+        finish = true ;
+
+        
+        if ( notininquotation && needprint ) 
+          System.out.println( "Statement executed ..." ) ;
+        
+      } // else if
+      else if ( current.mitem.equals( "return" ) ) {
+        finish = true ;
+      } // else if 
+      else if ( current.mtype == 3 ) { // 
+        // System.out.println( current.mitem + current.mnext.mitem ) ;
+        if ( !Checkexist( current.mitem ) && !Checkfunctionexist( current.mitem ) ) {
+          System.out.println( "Line " + sreadline + " : undefined identifier : '" + current.mitem + "'" ) ;
+          finish = true ;
+          sreadline = 0 ;
+        } // if
+        else {  
+          temp = current ;
+          current = current.mnext ;
+          if ( current.mitem.equals( "=" ) ) {
+            // System.out.println( Findtype( temp.mitem ) ) ;
+            if ( Findtype( temp.mitem ) == "string" ) {
+              tempstr = Calculatestring( current.mnext, end ) ;
+              if ( !tempstr.equals( "error" ) ) AddData( temp.mitem, 0, "string", 1, tempstr, false ) ; 
+                // System.out.println( tempstr ) ;
+            } // if
+            else if ( Findtype( temp.mitem ) == "int" || Findtype( temp.mitem ) == "float" ) {
+              
+              tempfloat = Float.parseFloat( Calculateans( current.mnext, end ) ) ;
+              if ( tempfloat != -999 ) AddData( temp.mitem, tempfloat, "int", 1, "", false ) ; 
+            } // else if
+            
+            finish = true;
+          } // if
+          else if ( current.mitem.equals( "(" ) ) {
+            if ( current.mnext != null ) current = current.mnext ;
+            if ( current.mitem.equals( ")" ) ) {
+              if ( current.mnext != null ) current = current.mnext ;
+              if ( current.mitem.equals( ";" ) ) Handlefunction( temp.mitem, "" ) ;
+            } // if
+            else if ( current.mtype == 10 ) {
+              // System.out.println( temp.mitem +  current.mitem.substring( 1, current.mitem.length() )) ;
+              Handlefunction( temp.mitem, current.mitem.substring( 1, current.mitem.length() ) ) ;
+              // System.out.println( "in" ) ;
+            } // else if 
+            else {
+              
+            } // else 
+          } // else if 
+          else if ( current.mitem.equals( "++" ) ) {
+            AddData( temp.mitem, Getnumber( temp.mitem ) + 1, Findtype( temp.mitem ), 1, "", false ) ; 
+          } // else if
+          else if ( current.mitem.equals( "--" ) ) {
+            AddData( temp.mitem, Getnumber( temp.mitem ) - 1, Findtype( temp.mitem ), 1, "", false ) ; 
+          } // else if          
+          
+          if ( notininquotation && needprint ) 
+            System.out.println( "Statement executed ..." ) ;
+        } // else
+        
+        finish = true ;
+      } // else if
+      // System.out.println( "0000" ) ;
+    } // for
+    
+    // System.out.println( "0000" ) ;
+    return true ;
+  } // justpass()
   
   
   
@@ -2405,8 +3591,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       Handlegrammer() ;
       ListNode end = scommandhead ;
       while ( end.mnext != null ) end = end.mnext ;
-      //while ( Dealwithprocess( scommandhead, end, true, true ) ) {
-      while (  true ) {
+      while ( justpass( scommandhead, end, true, true ) ) {
         scommandhead = null ;
         Handlegrammer() ;
         end = scommandhead ;
