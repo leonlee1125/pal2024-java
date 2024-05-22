@@ -191,6 +191,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public boolean sissetcommand = false ;  // 是否為定義句
   
+  static public int skip = 0 ;
+  
   static public int sreadcomma = 0 ; // 檢查括號
   
   static public int sreadbigcomma = 0 ; // 檢查大括號
@@ -204,7 +206,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   static public boolean spreiscin = false ; // error of op
   static public boolean specialcheck = false ; // error of op
   
-  static public boolean sisfirstofstate = true ; // 
+  static public boolean sisfirstofstate = true ; //
   
   static public ListNode spredo ;
   
@@ -310,8 +312,24 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
   static public boolean Addtovector( String item ) {
     int type = 0 ;
-    // System.out.println( shasend + "" + sifhasprint ) ;
-       
+    // System.out.println( item ) ;
+    
+    boolean onedot = false ;
+    for ( int i = 0; i < item.length() ; i++ ) {
+      // System.out.println( item.charAt( i ) ) ;
+      if ( item.charAt( i ) == '.' ) {
+        if ( onedot ) {
+          int secondDot = item.indexOf( '.', i + 1 ) ; // 找到第三個點的位置
+          if ( secondDot == -1 ) secondDot = item.length();
+          System.out.println( "> Line " + sreadline + " : unexpected token : '" + 
+                              item.substring( i, secondDot ) + "'" ) ;
+          return false ;
+        } // if
+        
+        onedot = true  ;
+      } // if
+    } // for
+    
     if ( item.equals( "int" ) ) type = 3  ;   
     else if ( item.equals( "float" ) ) type = 4 ;
     else if ( item.equals( "char" ) ) type = 5 ;
@@ -322,9 +340,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else if ( item.equals( "else" ) ) type = 10 ;
     else if ( item.equals( "while" ) ) type = 11 ;
     else if ( item.equals( "do" ) ) type = 12 ;
-    else if ( item.equals( "return" ) ) type = 13 ;    
-    else if ( CheckisIdentifier( item ) ) type = 1 ;
+    else if ( item.equals( "return" ) ) type = 13 ;   
     else if ( CheckisConstant( item ) ) type = 2  ; 
+    else if ( CheckisIdentifier( item ) ) type = 1 ;
     else if ( item.equals( "(" ) ) type = 14 ;
     else if ( item.equals( ")" ) ) type = 15 ;
     else if ( item.equals( "[" ) ) type = 16 ;
@@ -381,11 +399,13 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     
     if ( spreiscin ) {
       if (  type == 47 ) spreiscin = false ;
-      else {
-        if ( !specialcheck && !item.equals( ">>" ) && !item.equals( "<<" ) && type != 16 ) {
+      else { // 確認 << 一個一個跳
+        if ( !specialcheck && !item.equals( ">>" ) && !item.equals( "<<" ) && type != 16 && skip == 0 ) {
           System.out.println( "> Line " + sreadline + " : unexpected token : '" + item + "'" ) ;
           return false ;
         } // if
+        if ( !specialcheck && type == 16 ) skip = 3 ;
+        if ( skip > 0 ) skip-- ;
         
         if ( item.equals( ">>" ) || item.equals( "<<" ) ) specialcheck = true ;
         else specialcheck = false ;
@@ -551,6 +571,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         line = scanner.nextLine();
         sreadline++ ;
       } // if  
+      else return ;
     } // else
     
     
@@ -592,18 +613,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           sissetcommand = false;
         } // else if
         else if ( temp == ':' ) { // 宣告
-          if ( i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
-            i++;
-            noerror = Addtovector( ":=" ) ;
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
           } // if
-          else {
-            if ( save != "" ) { 
-              noerror = Addtovector( save ) ;
-              save = "" ;
-            } // if
-            
-            if ( noerror ) noerror = Addtovector( ":" ) ;
-          } // else
+          
+          if ( noerror ) noerror = Addtovector( ":" ) ;
         } // else if
         else if ( temp == '\"' ) {
           if ( save != "" ) { 
@@ -637,12 +652,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             findend = line.charAt( i );
           } // while
 
-          if ( noerror ) noerror = Addtovector( line.substring( firstchar+1, i ) ) ;
+          if ( noerror ) noerror = Addtovector( line.substring( firstchar+1, i ).trim() ) ;
           if ( noerror ) noerror = Addtovector( "]" ) ;
         } // else if
         else if ( temp == '=' ) {
           if ( save != "" ) { 
-            // System.out.println( "123" + slineleft + "123" ) ;
             noerror = Addtovector( save ) ;
             save = "" ;
           } // if
@@ -661,6 +675,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             i++;
             noerror = Addtovector( "++" ) ;
           } // if
+          else if ( noerror && i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
+            i++;
+            noerror = Addtovector( "+=" ) ;
+          } // else if 
           else if ( noerror ) noerror = Addtovector( "+" ) ;
         } // else if
         else if ( temp == '-' ) {
@@ -674,6 +692,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             i++;
             noerror = Addtovector( "--" ) ;
           } // if
+          else if ( noerror && i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
+            i++;
+            noerror = Addtovector( "-=" ) ;
+          } // else if 
           else if ( noerror ) noerror = Addtovector( "-" ) ;
 
         } // else if
@@ -683,7 +705,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             save = "" ;
           } // if
           
-          if ( noerror ) noerror = Addtovector( "*" ) ;
+          if ( noerror && i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
+            i++;
+            noerror = Addtovector( "*=" ) ;
+          } // else if 
+          else if ( noerror ) noerror = Addtovector( "*" ) ;
 
         } // else if
         else if ( temp == '/' ) {
@@ -705,7 +731,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
               save = "" ;
             } // if
             
-            if ( noerror ) noerror = Addtovector( "/" ) ;
+            if ( noerror && i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
+              i++;
+              noerror = Addtovector( "/=" ) ;
+            } // else if 
+            else if ( noerror ) noerror = Addtovector( "/" ) ;
 
           } // else 
         } // else if
@@ -884,6 +914,58 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           
           if ( noerror ) noerror = Addtovector( "?" ) ;
         } // else if
+        else if ( temp == '%' ) {
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
+          if ( noerror && i+1 < line.length() && line.charAt( i+1 ) == '=' ) {
+            i++;
+            noerror = Addtovector( "%=" ) ;
+          } // else if 
+          else if ( noerror ) noerror = Addtovector( "%" ) ;
+        } // else if
+        else if ( temp == '^' ) {
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
+          if ( noerror ) noerror = Addtovector( "^" ) ;
+        } // else if
+        else if ( temp == '!' ) {
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
+          if ( i+1 < line.length() &&  line.charAt( i+1 ) == '=' ) {   
+            noerror = Addtovector( "!=" ) ;
+            i++ ;
+          } // if
+          else if ( noerror ) noerror = Addtovector( "!" ) ;
+        } // else if
+        else if ( temp == '\'' ) { // '
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
+          int firstchar = i ;
+          char check ;
+          i++ ;
+          i++ ;
+
+          check = line.charAt( i );
+          if ( check != '\'' )  {
+            System.out.println( "> Line " + sreadline + " : unexpected token : '''" ) ;
+            noerror = false ;
+          } // if
+
+          if ( noerror ) noerror = Addtovector( line.substring( firstchar, i ) ) ;
+
+        } // else if
         else {
           if ( IsLetterDigit( temp ) ) save = save + line.charAt( i ) ;
         } // else
@@ -920,20 +1002,19 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
       
       
-      if ( !shasend && !slineleft.trim().isEmpty() || sinquotation && !slineleft.trim().isEmpty() ) {
+      if ( ( !shasend || sinquotation ) && !slineleft.trim().isEmpty() ) {
         line = slineleft;
         slineleft = "" ;
-        
       } // if
-      else if ( !shasend && scanner.hasNext() || sinquotation && scanner.hasNext() ) {
+      else if ( ( !shasend || sinquotation ) && scanner.hasNext() ) {
         line = scanner.nextLine();
         sreadline++;
         while ( line.trim().isEmpty() ) {
           line = scanner.nextLine(); 
           sreadline++;
         } // while
-        // System.out.println( line );
       } // if
+      else return ;
       
     } // while
     
@@ -1114,6 +1195,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         else  if ( FormalParameterList() ) {
           if ( scheckhead.mnext == null ) return true ;
           else scheckhead = scheckhead.mnext ;
+          
+          if ( scheckhead.mtype != 15 ) return false ;
+          else {
+            if ( scheckhead.mnext == null ) return true ; // )
+            else scheckhead = scheckhead.mnext ;
+          } // else 
         } // else if
         else return false ;
       } // if
@@ -1132,6 +1219,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   static public boolean FormalParameterList() {
     if ( sprintroad ) System.out.println( "FormalParameterList" ) ;
     if ( TypeSpecifier() ) {
+      // System.out.println( scheckhead.mitem + "FormalParameterList1212" ) ;
       if ( scheckhead.mnext == null ) return true ;
       else scheckhead = scheckhead.mnext ;
       
@@ -1143,7 +1231,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( scheckhead.mtype == 1 ) {
         if ( scheckhead.mnext == null ) return true ;
         else scheckhead = scheckhead.mnext ;
-        
+        // System.out.println( scheckhead.mitem + "pass1224" ) ;
         if ( scheckhead.mtype == 16 ) {
           if ( scheckhead.mnext == null ) return true ;
           else scheckhead = scheckhead.mnext ;
@@ -2585,6 +2673,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   private static boolean Handlefunction( String functionname, String item ) {
     Vector<String> sorting = new Vector<String>() ;
     String temp = "" ;
+    // System.out.println( item ) ;
     
     if ( functionname.equals( "ListAllVariables" ) ) {
       
@@ -2614,28 +2703,33 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       // System.out.println( item ) ;
       temp = Findtype( item ) ;
       // System.out.println( temp ) ;
-      if ( temp.equals( "int" ) || temp.equals( "char" ) || temp.equals( "float" ) ) {
+      if ( temp.equals( "int" ) || temp.equals( "char" ) || temp.equals( "float" ) ||
+           temp.equals( "string" ) || temp.equals( "bool" ) ) {
         if ( temp.equals( "int" ) ) System.out.println( "int " + item + " ;" );
         if ( temp.equals( "char" ) ) System.out.println( "char " + item + " ;" );
         if ( temp.equals( "float" ) ) System.out.println( "float " + item + " ;" );
+        if ( temp.equals( "string" ) ) System.out.println( "string " + item + " ;" );
+        if ( temp.equals( "bool" ) ) System.out.println( "bool " + item + " ;" );
       } // if
-      else if ( temp.equals( "intarray" ) || temp.equals( "chararray" ) || temp.equals( "floatarray" ) ) {
+      else if ( temp.equals( "intarray" ) || temp.equals( "chararray" ) || temp.equals( "floatarray" ) ||
+                temp.equals( "stringarray" ) || temp.equals( "boolarray" ) ) {
         if ( temp.equals( "intarray" ) ) 
           System.out.println( "int " + item + "[ " + Getsize( item ) + " ] ;" ) ;
         if ( temp.equals( "chararray" ) ) 
           System.out.println( "char " + item + "[ " + Getsize( item ) + " ] ;" );
         if ( temp.equals( "floatarray" ) ) 
           System.out.println( "float " + item + "[ " + Getsize( item ) + " ] ;" );
+        if ( temp.equals( "stringarray" ) ) 
+          System.out.println( "string " + item + "[ " + Getsize( item ) + " ] ;" );
+        if ( temp.equals( "boolarray" ) ) 
+          System.out.println( "bool " + item + "[ " + Getsize( item ) + " ] ;" );
       } // else if
-      else if ( temp == "string" ) System.out.println( "string " + item + " ;" );
-      else if ( temp == "stringarray" ) 
-        System.out.println( "string " + item + "[ " + Getsize( item ) + " ] ;" );
-
     } // if
     else if ( functionname.equals( "ListAllFunctions" ) ) {
       Displayall();
     } // if
     else if ( functionname.equals( "ListFunction" ) ) {
+      item = item.substring( 1, item.length() - 1 ) ; 
       Prettyprint( item, Gettype( item ), Getinput( item ), Getitem( item ) ) ; 
     } // if
     else {
@@ -2653,15 +2747,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     boolean first = true ;
     
     for ( int i = 0 ; i < input.size() ; i++ ) {
-      
-      if ( input.get( i ).charAt( 0 ) == '[' ) {
-        System.out.print( "[ " + input.get( i ).substring( 1, input.get( i ).length() ) + " ]" ) ;  
-      } // if
-      else {
-        if ( input.get( i ).charAt( 0 ) == '(' || input.get( i ).charAt( 0 ) == '[' ) 
-          System.out.print( input.get( i ) ) ;
-        else System.out.print( " " + input.get( i ) ) ;
-      } // else
+      if ( input.get( i ).charAt( 0 ) == '(' || input.get( i ).charAt( 0 ) == '[' ) 
+        System.out.print( input.get( i ) ) ;
+      else System.out.print( " " + input.get( i ) ) ;
     } // for
     
     System.out.print( " " ) ;
@@ -2680,10 +2768,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
      
       
-      if ( item.get( i ).charAt( 0 ) == '[' ) {
-        System.out.print( "[ " + item.get( i ).substring( 1, item.get( i ).length() ) + " ]" ) ;  
-      } // if
-      else System.out.print( item.get( i ) ) ;
+      System.out.print( item.get( i ) ) ;
       
       first = false ;
       
