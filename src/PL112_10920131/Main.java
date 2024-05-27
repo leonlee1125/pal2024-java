@@ -407,7 +407,15 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     
     // System.out.println( item + type ) ;
     //   item +  sisfirst  + sinif + "  " + skipstat + "   " + shasend 
-
+    if ( sisfirst && !item.equals( "else" ) && sifcount == 0 && sinif && !sinsmallquotation ) { // 
+      // System.out.println( "213" ) ;
+      if ( skipstat > 0 ) skipstat-- ;
+      if ( skipstat == 0 ) {
+        sinif = false ;
+        sneedretain = true ;
+        // System.out.println( "!23" ) ;
+      } // if
+    } // if
     
     if ( sisfirst && item.equals( "else" ) && sifcount == 0 && sinif  ) {
       // System.out.println( "567" ) ;
@@ -415,16 +423,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( skipstat == 0 ) sinif = false ;
     } // if
     
-    if ( sisfirst && !item.equals( "else" ) && sifcount == 0 && sinif && !sinsmallquotation ) { // 
-      // System.out.println( "213" ) ;
-      if ( skipstat > 0 ) skipstat-- ;
-      if ( skipstat == 0 ) {
-        if ( item.equals( "}" ) ) sreadbigcomma++ ;
-        sinif = false ;
-        sneedretain = true ;
-        // System.out.println( "!23" ) ;
-      } // if
-    } // if
     
     
     if ( ( item.equals( "{" ) || item.equals( "}" ) ) && sinif ) { // check if end
@@ -844,8 +842,11 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             
             if ( noerror ) noerror = Addtovector( "}" ) ;
             
-            if ( i != line.length()-1 && !sinif && !sindo ) 
+            if ( i != line.length()-1 && !sinif && !sindo ) {
               slineleft = line.substring( i+1, line.length() );
+              i = line.length() - 1 ;
+            } // if
+            
             if ( sreadbigcomma == 0 ) shasend = true ;
             if ( sindo && sdocount == 0 ) {
               // System.out.println( "000" ) ;
@@ -1013,18 +1014,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           
           int firstchar = i ;
           char check ;
-          if ( i+1 < line.length() ) i++ ;
-          if ( i+1 < line.length() ) i++ ;
+          if ( i+2 < line.length() ) i = i + 2  ;
 
           check = line.charAt( i );
+
           if ( check != '\'' )  {
             if ( sreadline != 0 )
               System.out.println( "> Line " + sreadline + " : unrecognized token with first char : '''" ) ;
             else System.out.println( "> Line 1 : unrecognized token with first char : '''" ) ;
             noerror = false ;
           } // if
-
-          if ( noerror ) noerror = Addtovector( line.substring( firstchar, i ) ) ;
+          
+          if ( noerror ) noerror = Addtovector( line.substring( firstchar, i+1 ) ) ;
 
         } // else if
         else {
@@ -1041,7 +1042,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           // System.out.println( line ) ;
           temp = ' ' ; 
           // System.out.println( sretain + " " + line.substring( i+1, line.length() ) ) ;
-          // System.out.println( i + "  0000" ) ;
+          // System.out.println(  "  0000" ) ;
           
           if ( line.length() == 1 ) slineleft = sretain ;
           else slineleft = sretain + " " + line.substring( i+1, line.length() ) ;
@@ -1117,24 +1118,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     return true ;
   } // Checkpreisnotelse()
     
-  
-  static public boolean Checkpreiscomma( ListNode node ) {
-    ListNode temp = scommandhead ;
-    while ( temp != null && temp != node && temp.mnext != node ) {
-      temp = temp.mnext ;
-    } // while
-      
-    // if ( temp != null ) System.out.println( temp.mitem ) ;
-    if ( temp == null ) return false ;
-    if ( temp == node ) return false ;
-    if ( temp.mnext == node ) {
-      if ( temp.mitem.equals( "(" ) ) return true ;
-      else return false ;
-    } // if
-    
-    return false ;
-  } // Checkpreiscomma()
-  
   // ======================================================================================================
   static public void Gobackone() { // ok
     ListNode temp = scommandhead ;
@@ -1306,6 +1289,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         if ( scheckhead.mtype == 8 ) {
           if ( scheckhead.mnext == null ) return true ;
           else scheckhead = scheckhead.mnext ;
+          
+          if ( scheckhead.mtype != 15 ) return false ;
+          else {
+            if ( scheckhead.mnext == null ) return true ; // )
+            else scheckhead = scheckhead.mnext ;
+          } // else 
         } // if
         else  if ( FormalParameterList() ) {
           if ( sprintroad ) System.out.println( scheckhead.mitem + "FunctionDefinitionWithoutID 1174" ) ;
@@ -2620,7 +2609,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Gettype()
   
   static public Functiondata Finddata( String mstr ) {
-    for ( int i = 0 ; i < sgdefinefunction.size() ; i++ ) {
+    for ( int i = sgdefinefunction.size() - 1 ; i >= 0 ; i-- ) {
       Functiondata ds = sgdefinefunction.get( i );
       if ( ds.GetStr().equals( mstr ) ) {
         return ds;
@@ -2721,7 +2710,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   
   static public float Getnumber( String item ) {
-    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
+    for ( int i = sgdefinename.size() - 1 ; i >= 0 ; i-- ) {
       Iddata pair = sgdefinename.get( i );
       if ( pair.GetStr().equals( item ) ) {
         return pair.GetNum();
@@ -2733,7 +2722,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   
   static public int Getsize( String item ) {
-    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
+    for ( int i = sgdefinename.size() - 1 ; i >= 0 ; i-- ) {
       Iddata pair = sgdefinename.get( i );
       if ( pair.GetStr().equals( item ) ) {
         return pair.Getsize();
@@ -2785,7 +2774,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public String Getstring( String str ) {
     
-    for ( int i = 0; i < sgdefinename.size() ; i++ ) {
+    for ( int i = sgdefinename.size() - 1 ; i >= 0 ; i-- ) {
       Iddata pair = sgdefinename.get( i );
       if ( pair.GetStr().equals( str ) ) {
         // System.out.println( pair.GetNum() + pair.Gettype() + pair.Getinfunction() ) ;
@@ -2892,7 +2881,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     else if ( functionname.equals( "ListFunction" ) ) {
       if ( item.length() > 2 ) {
         item = item.substring( 1, item.length() - 1 ) ; 
-        Prettyprint( item, Gettype( item ), Getinput( item ), Getitem( item ) ) ; 
+        if ( Checkfunctionexist( item ) )
+          Prettyprint( item, Gettype( item ), Getinput( item ), Getitem( item ) ) ; 
       } // if
     } // if
     else {
@@ -2903,8 +2893,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Handlefunction()
   
   
+  
   private static void Prettyprint( String name, String type, ArrayList<String> input, 
                                    ArrayList<String> item ) {    
+    
     System.out.print( type + " " + name ) ;
     String space = "" ;
     boolean first = true ;
@@ -2927,9 +2919,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     int preifcount = 0 ;
     boolean prewhile = false ;
     int prewhilecount = 0 ;
+    int ifelsecounter = 0 ;
+    boolean skipelse = false ;
+    int counter = 0 ; 
+    int chance = 0 ;
     
+
     
     for ( int i = 0 ; i < item.size() ; i++ ) {
+      
+      // System.out.println(  "" + item.get( i ) + "  " +  ifelsecounter + "  00000" );
+      if ( item.get( i ).equals( "if" ) ) ifelsecounter ++ ; 
+      if ( item.get( i ).equals( "else" ) ) ifelsecounter -- ; 
       
       if ( preif ) {
         if ( item.get( i ).equals( "(" ) ) preifcount++ ;
@@ -2945,9 +2946,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       
       if ( item.get( i ).equals( "while" ) ) prewhile = true ; 
       
+        
       if ( item.get( i ).equals( "}" ) )  space = space.substring( 2, space.length() ) ;
       
-      if ( first ) System.out.print( space ) ;
+      if ( first ) System.out.print( space ) ;   
       
       if ( !first && item.get( i ).charAt( 0 ) != '['  && item.get( i ) != "," &&
            ! ( item.get( i ) == "(" &&  Checkfunctionexist( item.get( i-1 ) ) 
@@ -2961,34 +2963,48 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       } // if
       
       // System.out.println( prewhile + "  " + item + "  " + prewhilecount ) ;
-     
+      first = false ;
+      
       if ( preif && item.get( i ).equals( ")" ) && preifcount == 0 ) { // 印出
         preif = false ; 
         if ( i + 1 < item.size() && !item.get( i + 1 ).equals( "{" ) && !item.get( i + 1 ).equals( ";" ) ) {
-          System.out.print( item.get( i ) ) ;
-          i++;
-          System.out.print( "\n" + space + "  " + item.get( i ) ) ;
+          System.out.println( item.get( i ) ) ; // )
+          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
+            System.out.print( "  " ) ; 
+          first = true ;
         } // if
         else System.out.print( item.get( i ) ) ;
       } // if
       else if ( prewhile && item.get( i ).equals( ")" ) && prewhilecount == 0 ) { // 印出
         prewhile = false ; 
         if ( i + 1 < item.size() && !item.get( i + 1 ).equals( "{" ) && !item.get( i + 1 ).equals( ";" ) ) {
-          System.out.print( item.get( i ) ) ;
-          i++;
-          System.out.print( "\n" + space + "  " + item.get( i ) ) ;
+          System.out.println( item.get( i ) ) ;
+          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
+            System.out.print( "  " ) ; 
+          first = true ;
         } // if
         else System.out.print( item.get( i ) ) ;
       } // else if
-      else if ( item.get( i ).equals( "else" ) 
-                && ( !item.get( i + 1 ).equals( "if" ) && !item.get( i + 1 ).equals( "{" ) ) ) {
-        System.out.print( item.get( i ) ) ;
-        i++;
-        System.out.print( "\n" + space + "  " + item.get( i ) ) ;
+      else if ( i + 1 < item.size() && item.get( i ).equals( "else" ) && !item.get( i + 1 ).equals( "{" ) &&
+                !item.get( i + 1 ).equals( ";" )  ) {
+
+        for ( int x = 0 ; x < ifelsecounter  ; x++ ) 
+          System.out.print( "  " ) ; 
+        System.out.println( item.get( i ) ) ;
+        if ( item.get( i + 1 ).equals( "if" ) ) {
+          ifelsecounter++ ;
+          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
+            System.out.print( "  " ) ; 
+          counter++ ;
+          skipelse = true ;
+          chance = 1 ;
+        } // if
+        else for ( int x = 0 ; x < ifelsecounter + 1 ; x++ ) 
+            System.out.print( "  " ) ; 
+        first = true ;
       } // if
       else System.out.print( item.get( i ) ) ;
       
-      first = false ;
       
       if ( ( item.get( i ) == "++" || item.get( i ) == "--" ) &&  i + 1 < item.size() ) {
         if ( CheckisIdentifier( item.get( i + 1 ) ) ) {
@@ -2999,8 +3015,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       
       if ( item.get( i ) == "("  &&  i + 1 < item.size() ) {
         if ( item.get( i + 1 ).equals( ")" ) )  {
-          preifcount-- ;
-          prewhilecount-- ;
+          if ( preif ) preifcount-- ;
+          if ( prewhile ) prewhilecount-- ;
           i++ ;
           System.out.print( item.get( i ) ) ;
         } // if
@@ -3020,6 +3036,18 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( item.get( i ).equals( ";" ) ) {
         System.out.println( "" ) ;
         first = true ;
+        // System.out.println( "000" + space + "000" ) ;
+        if ( skipelse ) counter-- ;
+        if ( i + 1 < item.size() && item.get( i + 1 ).equals( "else" ) && chance == 1 ) {
+          chance-- ;
+          counter++ ;  
+        } // if
+        
+        if ( skipelse && counter == 0 ) {
+          skipelse = false ;
+          if ( ifelsecounter > 3 ) ifelsecounter = ifelsecounter - 2 ;
+          else ifelsecounter = 1 ;
+        } // if
       } // if
       
     } // for
