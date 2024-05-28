@@ -225,6 +225,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   
   static public ListNode spreif ;
   
+  static public boolean serrorkeep = false ;
+  
   private static Scanner scanner = new Scanner( System.in ); // 创建全局Scanner实例
   
   static public boolean Checkisint( String token ) {  // 檢查int
@@ -326,7 +328,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
   static public boolean Addtovector( String item ) {
     int type = 0 ;
-    // System.out.println( item + "  " + sisfirst + "  " + sinif + "  " + skipstat + "   " + sreadbigcomma );
+    // System.out.println( item + "  " + shasend + sinquotation + sinif + "   " + slineleft );
     // System.out.println( item + "  " + sinquotation + "  " + sreadbigcomma + sneedretain ) ;
     
     boolean onedot = false ;
@@ -413,7 +415,17 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( skipstat == 0 ) {
         sinif = false ;
         sneedretain = true ;
-        // System.out.println( "!23" ) ;
+        
+        if ( !sinquotation ) {
+          ListNode end = scommandhead ;
+          while ( end != null && end.mnext != null ) {
+            end = end.mnext ; 
+          } // while
+          
+          Justpass( scommandhead, end, true, true, true ) ;
+          scommandhead = null ;
+          sreadline = 1 ; 
+        } // if
       } // if
     } // if
     
@@ -468,58 +480,62 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     } // else if
     else if ( sisfirst ) sisfirst = false ; 
     
-    ListNode newNode = new ListNode( type, item );
-    if ( scommandhead == null ) {
-      if ( !sneedretain ) scommandhead = newNode;
-    } // if 
-    else {
-      ListNode last = scommandhead ;
-      while ( last.mnext != null ) {
-        last = last.mnext;
-      } // while
-      
-      if ( !sneedretain ) last.mnext = newNode;
-    } // else
+    if ( !sneedretain ) {
+      ListNode newNode = new ListNode( type, item );
     
-    if ( sneedretain ) {
+      if ( scommandhead == null ) {
+        scommandhead = newNode;
+      } // if 
+      else {
+        ListNode last = scommandhead ;
+        while ( last.mnext != null ) {
+          last = last.mnext;
+        } // while
+        
+        last.mnext = newNode;
+      } // else
+   
+         
+      if ( Checkspecialword( item ) ) spredo = newNode ;
+      if ( ( type == 15 || type == 47 || type == 48 ) ) spredoend = newNode ;
+      if ( type == 9 && !sinif && Checkpreisnotelse( newNode ) ) {
+        spreif = newNode ;
+      } // if
+      
+      if ( item.equals( "else" )  ) {
+        shasend = false ;
+      } // if 
+      
+      if ( item.equals( "if" )  ) {
+        skipstat++ ;
+        sinif = true ;
+      } // if
+   
+      if ( item.equals( "do" ) ) {
+        sindo = true ;
+      } // if
+      
+      if ( sprintroad ) System.out.println( item + type + "!!!!!!!!!!!!!" ) ;
+      
+      scheckhead = scommandhead ;
+      /*
+      for ( ListNode temp5 = scheckhead ; temp5 != null ; temp5 = temp5.mnext ) {
+        System.out.println( temp5.mitem ) ;
+      } // for
+      */
+      if ( scheckhead != null && !Checkgrammer() ) {
+        if ( sreadline != 0 ) 
+          System.out.println( "> Line " + sreadline + " : unexpected token : '" + item + "'" ) ;
+        else System.out.println( "> Line 1 : unexpected token : '" + item + "'" ) ;
+        Cleaninfunction() ;
+        return false ;
+      } // if
+    } // if
+    else {
       if ( sretain.equals( "" ) ) sretain = item ;
       else sretain = sretain + " " + item ;
-    } // if
-    
-    if ( Checkspecialword( item ) && !sneedretain ) spredo = newNode ;
-    if ( ( type == 15 || type == 47 || type == 48 ) && !sneedretain ) spredoend = newNode ;
-    if ( type == 9 && !sinif && Checkpreisnotelse( newNode ) && !sneedretain ) {
-      spreif = newNode ;
-    } // if
-    
-    if ( item.equals( "else" )  ) {
-      shasend = false ;
-    } // if 
-    
-    if ( item.equals( "if" )  ) {
-      skipstat++ ;
-      sinif = true ;
-    } // if
- 
-    if ( item.equals( "do" ) ) {
-      sindo = true ;
-    } // if
-    
-    if ( sprintroad ) System.out.println( item + type + "!!!!!!!!!!!!!" ) ;
-    
-    scheckhead = scommandhead ;
-    /*
-    for ( ListNode temp5 = scheckhead ; temp5 != null ; temp5 = temp5.mnext ) {
-      System.out.println( temp5.mitem ) ;
-    } // for
-    */
-    if ( !Checkgrammer() ) {
-      if ( sreadline != 0 ) 
-        System.out.println( "> Line " + sreadline + " : unexpected token : '" + item + "'" ) ;
-      else System.out.println( "> Line 1 : unexpected token : '" + item + "'" ) ;
-      Cleaninfunction() ;
-      return false ;
-    } // if
+      if ( sneedretain && scommandhead == null ) serrorkeep = true ;
+    } // else 
     
     
     return true ;
@@ -576,6 +592,9 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     sinif = false ;
     sdocount = 0 ;
     sindo = false ;
+    sneedretain = false ;
+    sretain = "" ;
+    slineleft = "" ;
     
   } // Cleanall()
   
@@ -637,7 +656,8 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // if
           
           
-          if ( i != line.length()-1 && !sinquotation ) slineleft = line.substring( i+1, line.length() );
+          if ( noerror && i != line.length()-1 && !sinquotation ) 
+            slineleft = line.substring( i+1, line.length() );
           // System.out.println( "123" +slineleft+ "123" );
           if ( noerror ) noerror = Addtovector( ";" ) ;
           if ( ( sinquotation || sinsmallquotation ) && sissetcommand && noerror ) {  // 括號中預先宣告  防undefine ;
@@ -646,6 +666,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           } // if
           
           if ( noerror && !sinif ) shasend = true ;
+          // System.out.println( shasend + "" + sinquotation + sinif + "" ) ;
           sisfirst = true ;
           sissetcommand = false;
         } // else if
@@ -781,6 +802,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         else if ( temp == ')' ) {
           
           sreadcomma--;
+          /*
           if ( sreadcomma < 0 ) {
             if ( sreadline != 0 ) 
               System.out.println( "> Line " + sreadline + " : unexpected token : ')'" ) ;
@@ -788,7 +810,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
             noerror = false ;
             sreadcomma = 0 ;
           } // if
-          
+          */
           if ( save != "" ) { 
             noerror = Addtovector( save ) ;
             save = "" ;
@@ -830,36 +852,38 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         } // else if
         else if ( temp == '}' ) {
           sreadbigcomma--;
+          /*
           if ( sreadbigcomma < 0 ) {
-            System.out.println( "> Line " + sreadline + " : unexpected token : '}'" ) ;
+            System.out.println( "> Line " + sreadline + " : unexpected token : '}123'" ) ;
             noerror = false ;
           } // if
-          else {
-            if ( save != "" ) { 
-              noerror = Addtovector( save ) ;
-              save = "" ;
-            } // if
+          */
+          // else {
+          if ( save != "" ) { 
+            noerror = Addtovector( save ) ;
+            save = "" ;
+          } // if
+          
+          if ( noerror ) noerror = Addtovector( "}" ) ;
+          
+          if ( noerror && i != line.length()-1 && !sinif && !sindo ) {
+            slineleft = line.substring( i+1, line.length() );
+            i = line.length() - 1 ;
+          } // if
+          
+          if ( sreadbigcomma == 0 ) shasend = true ;
+          if ( sindo && sdocount == 0 ) {
+            // System.out.println( "000" ) ;
+            sindo = false ;
+            shasend = false ;
+          } // if
+          
+          if ( sreadbigcomma == 0 ) sinquotation = false ;
+          if ( sreadbigcomma == 0 ) Cleanallinfunction() ;
+          sissetcommand = false;
+          sisfirst = true ;
             
-            if ( noerror ) noerror = Addtovector( "}" ) ;
-            
-            if ( i != line.length()-1 && !sinif && !sindo ) {
-              slineleft = line.substring( i+1, line.length() );
-              i = line.length() - 1 ;
-            } // if
-            
-            if ( sreadbigcomma == 0 ) shasend = true ;
-            if ( sindo && sdocount == 0 ) {
-              // System.out.println( "000" ) ;
-              sindo = false ;
-              shasend = false ;
-            } // if
-            
-            if ( sreadbigcomma == 0 ) sinquotation = false ;
-            if ( sreadbigcomma == 0 ) Cleanallinfunction() ;
-            sissetcommand = false;
-            sisfirst = true ;
-            
-          } // else
+          // } // else
         } // else if
         else if ( temp == '>' ) { // op
           if ( i+1 < line.length() && ( line.charAt( i+1 ) == '>' ) ) {
@@ -1035,10 +1059,12 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         
         if ( noerror && shasend && !sinquotation && !sinif )  { 
           if ( i != line.length()-1 ) slineleft = line.substring( i+1, line.length() );
+          // System.out.println( line.substring( i+1, line.length() ) ) ;
         } // if
         
+        // System.out.println( sneedretain ) ;
         
-        if ( sneedretain ) {
+        if ( noerror && sneedretain ) {
           // System.out.println( line ) ;
           temp = ' ' ; 
           // System.out.println( sretain + " " + line.substring( i+1, line.length() ) ) ;
@@ -1046,19 +1072,19 @@ class Main { // 注意類別名稱需要跟.java檔名相同
           
           if ( line.length() == 1 ) slineleft = sretain ;
           else slineleft = sretain + " " + line.substring( i+1, line.length() ) ;
+          
           sretain = "" ;
           i = line.length() ;
           sisfirst = true ;
           sneedretain = false ;
         } // if
         
-
       } // for
       
+      // System.out.println( shasend + "" + sinquotation + sinif + "" ) ;
       
-      
-      // System.out.println( word );
-      // System.out.println( save );
+      // System.out.println( noerror );
+      // System.out.println( serrorkeep );
       
       if ( noerror && save != "" ) {
         // System.out.println( save );
@@ -1094,11 +1120,6 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       else return ;
       
     } // while
-    
-    // for ( ListNode tmp = scommandhead; tmp != null ; tmp = tmp.mnext ) 
-      // System.out.println( tmp.mitem + "5555" ) ;
-    
-    // System.out.println( "finishread" );
   } // Readcommendandstore()
   
   static public boolean Checkpreisnotelse( ListNode node ) {
@@ -2554,7 +2575,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
 
     Cleaninfunction() ;
     Cleanall() ;
-    // System.out.println( slineleft );
+    // System.out.println( slineleft + "==============" );
 
     Readcommendandstore() ;
     // if ( !Grammercheck() ) Readcommendandstore() ;
@@ -2893,13 +2914,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
   } // Handlefunction()
   
   
-  
   private static void Prettyprint( String name, String type, ArrayList<String> input, 
                                    ArrayList<String> item ) {    
     
     System.out.print( type + " " + name ) ;
-    String space = "" ;
-    boolean first = true ;
     int check = 0 ;
     
     for ( int i = 0 ; i < input.size() ; i++ ) {
@@ -2915,22 +2933,24 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     
     System.out.print( " " ) ;
     // ============================================================== 中間
+    String space = "" ;
+    boolean first = true ;
     boolean preif = false ;
     int preifcount = 0 ;
     boolean prewhile = false ;
     int prewhilecount = 0 ;
-    int ifelsecounter = 0 ;
-    boolean skipelse = false ;
-    int counter = 0 ; 
-    int chance = 0 ;
     
+    boolean needspecialspace = false ; // 處理 if 後 沒{}
+    int specialspace = 0 ; // 處理 if 後 沒{} 幾個
+    boolean needspecialspacebig = false ;
+    int countforspecialspace = 0 ;
+    boolean specialskip = false ;
+    int canspecialskip = 0;
 
     
     for ( int i = 0 ; i < item.size() ; i++ ) {
       
       // System.out.println(  "" + item.get( i ) + "  " +  ifelsecounter + "  00000" );
-      if ( item.get( i ).equals( "if" ) ) ifelsecounter ++ ; 
-      if ( item.get( i ).equals( "else" ) ) ifelsecounter -- ; 
       
       if ( preif ) {
         if ( item.get( i ).equals( "(" ) ) preifcount++ ;
@@ -2945,11 +2965,17 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       if ( item.get( i ).equals( "if" ) ) preif = true ; 
       
       if ( item.get( i ).equals( "while" ) ) prewhile = true ; 
-      
         
       if ( item.get( i ).equals( "}" ) )  space = space.substring( 2, space.length() ) ;
       
       if ( first ) System.out.print( space ) ;   
+      
+      if ( first && ( needspecialspace || needspecialspacebig ) ) {
+        // System.out.print( specialspace ) ; 
+        for ( int x = 0 ; x < specialspace ; x++ ) 
+          System.out.print( "  " ) ; 
+      } // if
+        
       
       if ( !first && item.get( i ).charAt( 0 ) != '['  && item.get( i ) != "," &&
            ! ( item.get( i ) == "(" &&  Checkfunctionexist( item.get( i-1 ) ) 
@@ -2962,16 +2988,16 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         else System.out.print( " " ) ;
       } // if
       
-      // System.out.println( prewhile + "  " + item + "  " + prewhilecount ) ;
       first = false ;
       
-      if ( preif && item.get( i ).equals( ")" ) && preifcount == 0 ) { // 印出
+      if ( preif && item.get( i ).equals( ")" ) && preifcount == 0 ) { // 印出   處理no {}
         preif = false ; 
         if ( i + 1 < item.size() && !item.get( i + 1 ).equals( "{" ) && !item.get( i + 1 ).equals( ";" ) ) {
           System.out.println( item.get( i ) ) ; // )
-          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
-            System.out.print( "  " ) ; 
+          // System.out.println( specialskip ) ; // )
           first = true ;
+          needspecialspace = true ;
+          specialspace++ ;
         } // if
         else System.out.print( item.get( i ) ) ;
       } // if
@@ -2979,41 +3005,53 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         prewhile = false ; 
         if ( i + 1 < item.size() && !item.get( i + 1 ).equals( "{" ) && !item.get( i + 1 ).equals( ";" ) ) {
           System.out.println( item.get( i ) ) ;
-          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
-            System.out.print( "  " ) ; 
           first = true ;
+          needspecialspace = true ;
+          specialspace++ ; 
         } // if
         else System.out.print( item.get( i ) ) ;
       } // else if
       else if ( i + 1 < item.size() && item.get( i ).equals( "else" ) && !item.get( i + 1 ).equals( "{" ) &&
                 !item.get( i + 1 ).equals( ";" )  ) {
 
-        for ( int x = 0 ; x < ifelsecounter  ; x++ ) 
+        // System.out.println( specialspace ) ;
+        for ( int x = 0 ; x < specialspace && !needspecialspacebig ; x++ ) 
           System.out.print( "  " ) ; 
         System.out.println( item.get( i ) ) ;
+        
         if ( item.get( i + 1 ).equals( "if" ) ) {
-          ifelsecounter++ ;
-          for ( int x = 0 ; x < ifelsecounter ; x++ ) 
+          specialskip = true ;
+          specialspace++ ; 
+          first = true ;
+          canspecialskip = 1 ;
+          
+          for ( int x = 0 ; x < specialspace ; x++ ) 
             System.out.print( "  " ) ; 
-          counter++ ;
-          skipelse = true ;
-          chance = 1 ;
         } // if
-        else for ( int x = 0 ; x < ifelsecounter + 1 ; x++ ) 
+        else if ( !needspecialspacebig ) {
+          for ( int x = 0 ; x < specialspace + 1 ; x++ ) 
             System.out.print( "  " ) ; 
+        } // else if
+        else {
+          for ( int x = 0 ; x < specialspace ; x++ ) 
+            System.out.print( "  " ) ; 
+        } // else 
+
+        
         first = true ;
       } // if
       else System.out.print( item.get( i ) ) ;
       
       
-      if ( ( item.get( i ) == "++" || item.get( i ) == "--" ) &&  i + 1 < item.size() ) {
+      
+      if ( ( item.get( i ) == "++" || item.get( i ) == "--" ) &&  i + 1 < item.size() ) { // 處理++--
         if ( CheckisIdentifier( item.get( i + 1 ) ) ) {
           i++ ;
           System.out.print( item.get( i ) ) ;
         } // if
       } // if
       
-      if ( item.get( i ) == "("  &&  i + 1 < item.size() ) {
+      if ( item.get( i ) == "("  &&  i + 1 < item.size() ) { // 處理()
         if ( item.get( i + 1 ).equals( ")" ) )  {
           if ( preif ) preifcount-- ;
           if ( prewhile ) prewhilecount-- ;
@@ -3026,33 +3064,65 @@ class Main { // 注意類別名稱需要跟.java檔名相同
         space = space + "  " ;
         System.out.println( "" ) ;
         first = true ;
+        if ( needspecialspace ) {
+          needspecialspace = false ;
+          needspecialspacebig = true ;
+        } // if
+        
+        if ( needspecialspacebig ) countforspecialspace++;
       } // if
       
       if ( item.get( i ).equals( "}" ) ) {
         System.out.println( "" ) ;
         first = true ;
+        if ( needspecialspacebig ) countforspecialspace-- ;
+        if ( needspecialspacebig && countforspecialspace == 0 ) {
+          needspecialspacebig = false ;
+          needspecialspace = false ;
+          specialspace-- ;
+        } // if
       } // if
       
       if ( item.get( i ).equals( ";" ) ) {
         System.out.println( "" ) ;
         first = true ;
-        // System.out.println( "000" + space + "000" ) ;
-        if ( skipelse ) counter-- ;
-        if ( i + 1 < item.size() && item.get( i + 1 ).equals( "else" ) && chance == 1 ) {
-          chance-- ;
-          counter++ ;  
+        if ( specialskip && i + 1 < item.size() && !item.get( i + 1 ).equals( "else" ) ) {
+          // System.out.println( specialspace + "12312313" ) ;
+          specialskip = false ;
+          specialspace-- ;
+          canspecialskip = 0 ;
+        } // if
+        else if ( specialskip && i + 1 < item.size() && item.get( i + 1 ).equals( "else" ) 
+                  && canspecialskip == 1 ) {
+          // System.out.println( specialspace + "12312313" ) ;
+          canspecialskip = 0 ;
+        } // else if 
+        else if ( specialskip && i + 1 < item.size() && item.get( i + 1 ).equals( "else" ) 
+                  && canspecialskip == 0 ) {
+          // System.out.println( specialspace + "12312313" ) ;
+          specialskip = false ;
+          if ( specialspace >= 3 ) specialspace = specialspace - 2  ;
+          else specialspace = 1 ;
+          canspecialskip = 0 ;
+        } // else if
+        
+        // System.out.print( "===" + space + "===" ) ;   
+        
+        if ( specialspace > 0 && !needspecialspacebig ) { 
+          specialspace-- ;
         } // if
         
-        if ( skipelse && counter == 0 ) {
-          skipelse = false ;
-          if ( ifelsecounter > 3 ) ifelsecounter = ifelsecounter - 2 ;
-          else ifelsecounter = 1 ;
-        } // if
+        
+        if ( needspecialspacebig && needspecialspace ) specialspace-- ;
+        
+        needspecialspace = false ;
+          
       } // if
       
     } // for
     
   } // Prettyprint()
+  
   
   
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3064,6 +3134,10 @@ class Main { // 注意類別名稱需要跟.java檔名相同
     String tempstr ;
     boolean isfunction = false ;
     
+    if ( serrorkeep ) {
+      serrorkeep = false ;
+      return true ;
+    } // if
     // System.out.println( start.mitem + "0000000000000000000000000") ;
     // for ( ListNode tmp = start; tmp != end ; tmp = tmp.mnext ) 
       // System.out.println( tmp.mitem ) ;
@@ -3227,7 +3301,7 @@ class Main { // 注意類別名稱需要跟.java檔名相同
       Addinifunction() ;
       Handlegrammer() ;
       ListNode end = scommandhead ;
-      while ( end.mnext != null ) end = end.mnext ;
+      while ( end != null && end.mnext != null ) end = end.mnext ;
       while ( Justpass( scommandhead, end, true, true, true ) ) {
         scommandhead = null ;
         Handlegrammer() ;
